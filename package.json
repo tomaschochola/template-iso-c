@@ -1,0 +1,44 @@
+{
+    "author": {
+        "email": "tomaschochola@tomaschochola.cz",
+        "name": "Tomáš Chochola",
+        "url": "https://github.com/tomaschochola"
+    },
+    "bugs": {
+        "email": "tomaschochola@tomaschochola.cz",
+        "url": "https://github.com/tomaschochola/template-iso-c/issues"
+    },
+    "contributors": [
+        {
+            "email": "tomaschochola@tomaschochola.cz",
+            "name": "Tomáš Chochola",
+            "url": "https://github.com/tomaschochola"
+        }
+    ],
+    "description": "ISO C23 application template with testing, static analysis, and sanitizers.",
+    "devDependencies": {
+        "@tomaschochola/tooling-prettier": "git+https://github.com/tomaschochola/tooling-prettier.git#main",
+        "@tomaschochola/tooling-trimmer": "git+https://github.com/tomaschochola/tooling-trimmer.git#main"
+    },
+    "funding": {
+        "type": "github",
+        "url": "https://github.com/sponsors/tomaschochola"
+    },
+    "homepage": "https://github.com/tomaschochola/template-iso-c",
+    "keywords": [
+        "tomaschochola",
+        "TomasChochola",
+        "Tomas Chochola",
+        "Tomáš Chochola",
+        "template-iso-c"
+    ],
+    "license": "CC-BY-ND-4.0",
+    "name": "@tomaschochola/template-iso-c",
+    "private": true,
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/tomaschochola/template-iso-c.git"
+    },
+    "type": "module",
+    "version": "0.0.0"
+}

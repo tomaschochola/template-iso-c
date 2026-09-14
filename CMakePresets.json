@@ -1,0 +1,586 @@
+{
+    "$schema": "https://gitlab.kitware.com/cmake/cmake/-/raw/v4.4.3/Help/manual/presets/schema.json",
+    "version": 12,
+    "cmakeMinimumRequired": {
+        "major": 4,
+        "minor": 4,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "base",
+            "hidden": true,
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            },
+            "cacheVariables": {
+                "CMAKE_C_FLAGS": "$env{CFLAGS}",
+                "CMAKE_COMPILE_WARNING_AS_ERROR": true,
+                "CMAKE_LINK_WARNING_AS_ERROR": true,
+                "CMAKE_EXE_LINKER_FLAGS": "$env{LDFLAGS}",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": true
+            },
+            "warnings": {
+                "author": true,
+                "deprecated": true,
+                "experimental": true,
+                "installAbsoluteDestination": true,
+                "policy": true,
+                "uninitialized": true,
+                "unusedCli": true
+            },
+            "errors": {
+                "author": true,
+                "deprecated": true,
+                "experimental": true,
+                "installAbsoluteDestination": true,
+                "policy": true,
+                "uninitialized": true,
+                "unusedCli": true
+            }
+        },
+        {
+            "name": "debug-base",
+            "hidden": true,
+            "inherits": "base",
+            "cacheVariables": {
+                "BUILD_TESTING": true,
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_C_FLAGS_DEBUG": "-Og -g -fno-omit-frame-pointer"
+            }
+        },
+        {
+            "name": "release-base",
+            "hidden": true,
+            "inherits": "base",
+            "cacheVariables": {
+                "BUILD_TESTING": true,
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_EXE_LINKER_FLAGS_RELEASE": "-s",
+                "CMAKE_INTERPROCEDURAL_OPTIMIZATION": true
+            }
+        },
+        {
+            "name": "dev",
+            "inherits": "debug-base"
+        },
+        {
+            "name": "analyzer",
+            "inherits": "debug-base",
+            "cacheVariables": {
+                "CMAKE_C_FLAGS_DEBUG": "-O0 -g -fno-omit-frame-pointer -fanalyzer -fanalyzer-transitivity -Wanalyzer-too-complex -Wanalyzer-symbol-too-complex --param analyzer-bb-explosion-factor=20 --param analyzer-max-constraints=64 --param analyzer-max-enodes-per-program-point=32 --param analyzer-max-infeasible-edges=40 --param analyzer-max-recursion-depth=4 --param analyzer-max-svalue-depth=64 --param analyzer-min-snodes-for-call-summary=5"
+            }
+        },
+        {
+            "name": "asan",
+            "inherits": "debug-base",
+            "cacheVariables": {
+                "CMAKE_C_FLAGS_DEBUG": "-Og -g -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-ipa-icf -fsanitize=address,undefined,bounds-strict,pointer-compare,pointer-subtract -fno-sanitize-recover=all",
+                "CMAKE_EXE_LINKER_FLAGS_DEBUG": "-fsanitize=address,undefined,bounds-strict,pointer-compare,pointer-subtract -fno-sanitize-recover=all"
+            }
+        },
+        {
+            "name": "ubsan",
+            "inherits": "debug-base",
+            "cacheVariables": {
+                "CMAKE_C_FLAGS_DEBUG": "-Og -g -fno-omit-frame-pointer -fsanitize=undefined,bounds-strict,float-cast-overflow -fno-sanitize-recover=all",
+                "CMAKE_EXE_LINKER_FLAGS_DEBUG": "-fsanitize=undefined,bounds-strict,float-cast-overflow -fno-sanitize-recover=all"
+            }
+        },
+        {
+            "name": "tsan",
+            "inherits": "debug-base",
+            "cacheVariables": {
+                "CMAKE_C_FLAGS_DEBUG": "-Og -g -fno-omit-frame-pointer -fsanitize=thread",
+                "CMAKE_EXE_LINKER_FLAGS_DEBUG": "-fsanitize=thread"
+            }
+        },
+        {
+            "name": "lsan",
+            "inherits": "debug-base",
+            "cacheVariables": {
+                "CMAKE_C_FLAGS_DEBUG": "-Og -g -fno-omit-frame-pointer",
+                "CMAKE_EXE_LINKER_FLAGS_DEBUG": "-fsanitize=leak"
+            }
+        },
+        {
+            "name": "valgrind",
+            "inherits": "debug-base",
+            "cacheVariables": {
+                "CMAKE_C_FLAGS_DEBUG": "-O1 -g -fno-omit-frame-pointer"
+            }
+        },
+        {
+            "name": "coverage",
+            "inherits": "debug-base",
+            "cacheVariables": {
+                "CMAKE_C_FLAGS_DEBUG": "-O0 -g --coverage -fcondition-coverage -fprofile-abs-path",
+                "CMAKE_EXE_LINKER_FLAGS_DEBUG": "--coverage"
+            }
+        },
+        {
+            "name": "native",
+            "inherits": "release-base",
+            "cacheVariables": {
+                "CMAKE_C_FLAGS": "$env{CFLAGS} -march=native -mtune=native"
+            }
+        },
+        {
+            "name": "linux-amd64-v1",
+            "inherits": "release-base",
+            "cacheVariables": {
+                "CMAKE_C_FLAGS": "$env{CFLAGS} -march=x86-64"
+            }
+        },
+        {
+            "name": "linux-amd64-v2",
+            "inherits": "release-base",
+            "cacheVariables": {
+                "CMAKE_C_FLAGS": "$env{CFLAGS} -march=x86-64-v2"
+            }
+        },
+        {
+            "name": "linux-amd64-v3",
+            "inherits": "release-base",
+            "cacheVariables": {
+                "CMAKE_C_FLAGS": "$env{CFLAGS} -march=x86-64-v3"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "dev",
+            "configurePreset": "dev"
+        },
+        {
+            "name": "analyzer",
+            "configurePreset": "analyzer"
+        },
+        {
+            "name": "asan",
+            "configurePreset": "asan"
+        },
+        {
+            "name": "ubsan",
+            "configurePreset": "ubsan"
+        },
+        {
+            "name": "tsan",
+            "configurePreset": "tsan"
+        },
+        {
+            "name": "lsan",
+            "configurePreset": "lsan"
+        },
+        {
+            "name": "valgrind",
+            "configurePreset": "valgrind"
+        },
+        {
+            "name": "coverage",
+            "configurePreset": "coverage",
+            "cleanFirst": true
+        },
+        {
+            "name": "native",
+            "configurePreset": "native"
+        },
+        {
+            "name": "linux-amd64-v1",
+            "configurePreset": "linux-amd64-v1"
+        },
+        {
+            "name": "linux-amd64-v2",
+            "configurePreset": "linux-amd64-v2"
+        },
+        {
+            "name": "linux-amd64-v3",
+            "configurePreset": "linux-amd64-v3"
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "test-base",
+            "hidden": true,
+            "output": {
+                "outputOnFailure": true
+            },
+            "execution": {
+                "noTestsAction": "error",
+                "stopOnFailure": true,
+                "timeout": 30
+            }
+        },
+        {
+            "name": "dev",
+            "inherits": "test-base",
+            "configurePreset": "dev"
+        },
+        {
+            "name": "analyzer",
+            "inherits": "test-base",
+            "configurePreset": "analyzer"
+        },
+        {
+            "name": "asan",
+            "inherits": "test-base",
+            "configurePreset": "asan",
+            "environment": {
+                "ASAN_OPTIONS": "detect_invalid_pointer_pairs=2"
+            }
+        },
+        {
+            "name": "ubsan",
+            "inherits": "test-base",
+            "configurePreset": "ubsan",
+            "environment": {
+                "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1"
+            }
+        },
+        {
+            "name": "tsan",
+            "inherits": "test-base",
+            "configurePreset": "tsan",
+            "environment": {
+                "TSAN_OPTIONS": "halt_on_error=1"
+            }
+        },
+        {
+            "name": "lsan",
+            "inherits": "test-base",
+            "configurePreset": "lsan",
+            "environment": {
+                "LSAN_OPTIONS": "report_objects=1"
+            }
+        },
+        {
+            "name": "coverage",
+            "inherits": "test-base",
+            "configurePreset": "coverage"
+        },
+        {
+            "name": "native",
+            "inherits": "test-base",
+            "configurePreset": "native"
+        },
+        {
+            "name": "linux-amd64-v1",
+            "inherits": "test-base",
+            "configurePreset": "linux-amd64-v1"
+        },
+        {
+            "name": "linux-amd64-v2",
+            "inherits": "test-base",
+            "configurePreset": "linux-amd64-v2"
+        },
+        {
+            "name": "linux-amd64-v3",
+            "inherits": "test-base",
+            "configurePreset": "linux-amd64-v3"
+        }
+    ],
+    "packagePresets": [
+        {
+            "name": "package-base",
+            "hidden": true,
+            "generators": ["TGZ"],
+            "packageDirectory": "${sourceDir}/dist",
+            "variables": {
+                "CPACK_PACKAGE_VERSION": "$env{VERSION}"
+            }
+        },
+        {
+            "name": "package-linux-amd64-v1",
+            "inherits": "package-base",
+            "configurePreset": "linux-amd64-v1",
+            "variables": {
+                "CPACK_PACKAGE_FILE_NAME": "template-iso-c-$env{VERSION}-linux-amd64-v1"
+            }
+        },
+        {
+            "name": "package-linux-amd64-v2",
+            "inherits": "package-base",
+            "configurePreset": "linux-amd64-v2",
+            "variables": {
+                "CPACK_PACKAGE_FILE_NAME": "template-iso-c-$env{VERSION}-linux-amd64-v2"
+            }
+        },
+        {
+            "name": "package-linux-amd64-v3",
+            "inherits": "package-base",
+            "configurePreset": "linux-amd64-v3",
+            "variables": {
+                "CPACK_PACKAGE_FILE_NAME": "template-iso-c-$env{VERSION}-linux-amd64-v3"
+            }
+        }
+    ],
+    "workflowPresets": [
+        {
+            "name": "dev",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "dev"
+                },
+                {
+                    "type": "build",
+                    "name": "dev"
+                },
+                {
+                    "type": "test",
+                    "name": "dev"
+                }
+            ]
+        },
+        {
+            "name": "analyzer",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "analyzer"
+                },
+                {
+                    "type": "build",
+                    "name": "analyzer"
+                },
+                {
+                    "type": "test",
+                    "name": "analyzer"
+                }
+            ]
+        },
+        {
+            "name": "asan",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "asan"
+                },
+                {
+                    "type": "build",
+                    "name": "asan"
+                },
+                {
+                    "type": "test",
+                    "name": "asan"
+                }
+            ]
+        },
+        {
+            "name": "ubsan",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "ubsan"
+                },
+                {
+                    "type": "build",
+                    "name": "ubsan"
+                },
+                {
+                    "type": "test",
+                    "name": "ubsan"
+                }
+            ]
+        },
+        {
+            "name": "tsan",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "tsan"
+                },
+                {
+                    "type": "build",
+                    "name": "tsan"
+                },
+                {
+                    "type": "test",
+                    "name": "tsan"
+                }
+            ]
+        },
+        {
+            "name": "lsan",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "lsan"
+                },
+                {
+                    "type": "build",
+                    "name": "lsan"
+                },
+                {
+                    "type": "test",
+                    "name": "lsan"
+                }
+            ]
+        },
+        {
+            "name": "memcheck",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "valgrind"
+                },
+                {
+                    "type": "build",
+                    "name": "valgrind"
+                }
+            ]
+        },
+        {
+            "name": "coverage",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "coverage"
+                },
+                {
+                    "type": "build",
+                    "name": "coverage"
+                },
+                {
+                    "type": "test",
+                    "name": "coverage"
+                }
+            ]
+        },
+        {
+            "name": "native",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "native"
+                },
+                {
+                    "type": "build",
+                    "name": "native"
+                },
+                {
+                    "type": "test",
+                    "name": "native"
+                }
+            ]
+        },
+        {
+            "name": "build-linux-amd64-v1",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "linux-amd64-v1"
+                },
+                {
+                    "type": "build",
+                    "name": "linux-amd64-v1"
+                },
+                {
+                    "type": "test",
+                    "name": "linux-amd64-v1"
+                }
+            ]
+        },
+        {
+            "name": "build-linux-amd64-v2",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "linux-amd64-v2"
+                },
+                {
+                    "type": "build",
+                    "name": "linux-amd64-v2"
+                },
+                {
+                    "type": "test",
+                    "name": "linux-amd64-v2"
+                }
+            ]
+        },
+        {
+            "name": "build-linux-amd64-v3",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "linux-amd64-v3"
+                },
+                {
+                    "type": "build",
+                    "name": "linux-amd64-v3"
+                },
+                {
+                    "type": "test",
+                    "name": "linux-amd64-v3"
+                }
+            ]
+        },
+        {
+            "name": "dist-linux-amd64-v1",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "linux-amd64-v1"
+                },
+                {
+                    "type": "build",
+                    "name": "linux-amd64-v1"
+                },
+                {
+                    "type": "test",
+                    "name": "linux-amd64-v1"
+                },
+                {
+                    "type": "package",
+                    "name": "package-linux-amd64-v1"
+                }
+            ]
+        },
+        {
+            "name": "dist-linux-amd64-v2",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "linux-amd64-v2"
+                },
+                {
+                    "type": "build",
+                    "name": "linux-amd64-v2"
+                },
+                {
+                    "type": "test",
+                    "name": "linux-amd64-v2"
+                },
+                {
+                    "type": "package",
+                    "name": "package-linux-amd64-v2"
+                }
+            ]
+        },
+        {
+            "name": "dist-linux-amd64-v3",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "linux-amd64-v3"
+                },
+                {
+                    "type": "build",
+                    "name": "linux-amd64-v3"
+                },
+                {
+                    "type": "test",
+                    "name": "linux-amd64-v3"
+                },
+                {
+                    "type": "package",
+                    "name": "package-linux-amd64-v3"
+                }
+            ]
+        }
+    ]
+}
