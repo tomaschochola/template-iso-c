@@ -1,8 +1,24 @@
 cmake_minimum_required(VERSION 4.4)
 
+if(DEFINED ENV{VERSION})
+    set(TEMPLATE_ISO_C_VERSION "$ENV{VERSION}")
+else()
+    set(TEMPLATE_ISO_C_VERSION "0.0.0")
+endif()
+
+if(NOT TEMPLATE_ISO_C_VERSION MATCHES "^[0-9]+(\\.[0-9]+)?(\\.[0-9]+)?(\\.[0-9]+)?$")
+    message(FATAL_ERROR "VERSION must be numeric CMake version")
+endif()
+
+if(DEFINED ENV{SOURCE_DATE_EPOCH})
+    if(NOT "$ENV{SOURCE_DATE_EPOCH}" MATCHES "^[0-9]+$")
+        message(FATAL_ERROR "SOURCE_DATE_EPOCH must contain only decimal digits")
+    endif()
+endif()
+
 project(
     template_iso_c
-    VERSION 0.0.0
+    VERSION "${TEMPLATE_ISO_C_VERSION}"
     DESCRIPTION "Native GNU/Linux GCC ISO C23 project template"
     LANGUAGES C
 )
@@ -20,14 +36,9 @@ if(NOT CMAKE_C_COMPILER_ID STREQUAL "GNU")
 endif()
 
 include(GNUInstallDirs)
+
 set(MEMORYCHECK_COMMAND_OPTIONS "--leak-check=full --track-origins=yes")
 include(CTest)
-include(CMakePackageConfigHelpers)
-
-if(BUILD_SHARED_LIBS)
-    set(CMAKE_INSTALL_RPATH "$ORIGIN;$ORIGIN/../lib")
-endif()
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
 
 add_library(template_iso_c_warnings INTERFACE)
 target_compile_options(
@@ -45,22 +56,6 @@ add_subdirectory(src)
 if(BUILD_TESTING)
     add_subdirectory(tests)
 endif()
-
-install(EXPORT template-iso-cTargets
-    NAMESPACE template_iso_c::
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/template-iso-c
-)
-
-write_basic_package_version_file(
-    ${CMAKE_CURRENT_BINARY_DIR}/template-iso-cConfigVersion.cmake
-    COMPATIBILITY SameMajorVersion
-)
-
-install(FILES
-    cmake/template-iso-cConfig.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/template-iso-cConfigVersion.cmake
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/template-iso-c
-)
 
 install(FILES LICENSE DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/doc/template-iso-c")
 

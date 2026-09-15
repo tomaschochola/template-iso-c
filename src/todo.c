@@ -1,4 +1,4 @@
-#include "template_iso_c/todo.h"
+#include "todo.h"
 
 int template_iso_c_todo(void)
 {

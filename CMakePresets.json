@@ -72,22 +72,22 @@
             "name": "analyzer",
             "inherits": "debug-base",
             "cacheVariables": {
-                "CMAKE_C_FLAGS_DEBUG": "-O0 -g -fno-omit-frame-pointer -fanalyzer -fanalyzer-transitivity -Wanalyzer-too-complex -Wanalyzer-symbol-too-complex --param analyzer-bb-explosion-factor=20 --param analyzer-max-constraints=64 --param analyzer-max-enodes-per-program-point=32 --param analyzer-max-infeasible-edges=40 --param analyzer-max-recursion-depth=4 --param analyzer-max-svalue-depth=64 --param analyzer-min-snodes-for-call-summary=5"
+                "CMAKE_C_FLAGS_DEBUG": "-O0 -g -fno-omit-frame-pointer -fanalyzer -fanalyzer-transitivity -Wanalyzer-too-complex -Wanalyzer-symbol-too-complex --param analyzer-bb-explosion-factor=1000 --param analyzer-max-enodes-per-program-point=2000 --param analyzer-max-constraints=1000 --param analyzer-max-infeasible-edges=1000 --param analyzer-max-recursion-depth=12 --param analyzer-max-svalue-depth=512"
             }
         },
         {
             "name": "asan",
             "inherits": "debug-base",
             "cacheVariables": {
-                "CMAKE_C_FLAGS_DEBUG": "-Og -g -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-ipa-icf -fsanitize=address,undefined,bounds-strict,pointer-compare,pointer-subtract -fno-sanitize-recover=all",
-                "CMAKE_EXE_LINKER_FLAGS_DEBUG": "-fsanitize=address,undefined,bounds-strict,pointer-compare,pointer-subtract -fno-sanitize-recover=all"
+                "CMAKE_C_FLAGS_DEBUG": "-Og -g -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-ipa-icf -fsanitize=address,undefined,bounds-strict,pointer-compare,pointer-subtract,float-cast-overflow -fno-sanitize-recover=all",
+                "CMAKE_EXE_LINKER_FLAGS_DEBUG": "-fsanitize=address,undefined,bounds-strict,pointer-compare,pointer-subtract,float-cast-overflow -fno-sanitize-recover=all"
             }
         },
         {
             "name": "ubsan",
             "inherits": "debug-base",
             "cacheVariables": {
-                "CMAKE_C_FLAGS_DEBUG": "-Og -g -fno-omit-frame-pointer -fsanitize=undefined,bounds-strict,float-cast-overflow -fno-sanitize-recover=all",
+                "CMAKE_C_FLAGS_DEBUG": "-Og -g -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-ipa-icf -fsanitize=undefined,bounds-strict,float-cast-overflow -fno-sanitize-recover=all",
                 "CMAKE_EXE_LINKER_FLAGS_DEBUG": "-fsanitize=undefined,bounds-strict,float-cast-overflow -fno-sanitize-recover=all"
             }
         },
@@ -95,7 +95,7 @@
             "name": "tsan",
             "inherits": "debug-base",
             "cacheVariables": {
-                "CMAKE_C_FLAGS_DEBUG": "-Og -g -fno-omit-frame-pointer -fsanitize=thread",
+                "CMAKE_C_FLAGS_DEBUG": "-Og -g -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-ipa-icf -fsanitize=thread",
                 "CMAKE_EXE_LINKER_FLAGS_DEBUG": "-fsanitize=thread"
             }
         },
@@ -103,12 +103,12 @@
             "name": "lsan",
             "inherits": "debug-base",
             "cacheVariables": {
-                "CMAKE_C_FLAGS_DEBUG": "-Og -g -fno-omit-frame-pointer",
+                "CMAKE_C_FLAGS_DEBUG": "-Og -g -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-ipa-icf -fsanitize=leak",
                 "CMAKE_EXE_LINKER_FLAGS_DEBUG": "-fsanitize=leak"
             }
         },
         {
-            "name": "valgrind",
+            "name": "memcheck",
             "inherits": "debug-base",
             "cacheVariables": {
                 "CMAKE_C_FLAGS_DEBUG": "-O1 -g -fno-omit-frame-pointer"
@@ -120,13 +120,6 @@
             "cacheVariables": {
                 "CMAKE_C_FLAGS_DEBUG": "-O0 -g --coverage -fcondition-coverage -fprofile-abs-path",
                 "CMAKE_EXE_LINKER_FLAGS_DEBUG": "--coverage"
-            }
-        },
-        {
-            "name": "native",
-            "inherits": "release-base",
-            "cacheVariables": {
-                "CMAKE_C_FLAGS": "$env{CFLAGS} -march=native -mtune=native"
             }
         },
         {
@@ -148,6 +141,13 @@
             "inherits": "release-base",
             "cacheVariables": {
                 "CMAKE_C_FLAGS": "$env{CFLAGS} -march=x86-64-v3"
+            }
+        },
+        {
+            "name": "native",
+            "inherits": "release-base",
+            "cacheVariables": {
+                "CMAKE_C_FLAGS": "$env{CFLAGS} -march=native -mtune=native"
             }
         }
     ],
@@ -177,17 +177,13 @@
             "configurePreset": "lsan"
         },
         {
-            "name": "valgrind",
-            "configurePreset": "valgrind"
+            "name": "memcheck",
+            "configurePreset": "memcheck"
         },
         {
             "name": "coverage",
             "configurePreset": "coverage",
             "cleanFirst": true
-        },
-        {
-            "name": "native",
-            "configurePreset": "native"
         },
         {
             "name": "linux-amd64-v1",
@@ -200,6 +196,10 @@
         {
             "name": "linux-amd64-v3",
             "configurePreset": "linux-amd64-v3"
+        },
+        {
+            "name": "native",
+            "configurePreset": "native"
         }
     ],
     "testPresets": [
@@ -223,7 +223,10 @@
         {
             "name": "analyzer",
             "inherits": "test-base",
-            "configurePreset": "analyzer"
+            "configurePreset": "analyzer",
+            "execution": {
+                "timeout": 600
+            }
         },
         {
             "name": "asan",
@@ -263,11 +266,6 @@
             "configurePreset": "coverage"
         },
         {
-            "name": "native",
-            "inherits": "test-base",
-            "configurePreset": "native"
-        },
-        {
             "name": "linux-amd64-v1",
             "inherits": "test-base",
             "configurePreset": "linux-amd64-v1"
@@ -281,6 +279,11 @@
             "name": "linux-amd64-v3",
             "inherits": "test-base",
             "configurePreset": "linux-amd64-v3"
+        },
+        {
+            "name": "native",
+            "inherits": "test-base",
+            "configurePreset": "native"
         }
     ],
     "packagePresets": [
@@ -315,6 +318,14 @@
             "configurePreset": "linux-amd64-v3",
             "variables": {
                 "CPACK_PACKAGE_FILE_NAME": "template-iso-c-$env{VERSION}-linux-amd64-v3"
+            }
+        },
+        {
+            "name": "package-native",
+            "inherits": "package-base",
+            "configurePreset": "native",
+            "variables": {
+                "CPACK_PACKAGE_FILE_NAME": "template-iso-c-$env{VERSION}-native"
             }
         }
     ],
@@ -426,11 +437,11 @@
             "steps": [
                 {
                     "type": "configure",
-                    "name": "valgrind"
+                    "name": "memcheck"
                 },
                 {
                     "type": "build",
-                    "name": "valgrind"
+                    "name": "memcheck"
                 }
             ]
         },
@@ -448,23 +459,6 @@
                 {
                     "type": "test",
                     "name": "coverage"
-                }
-            ]
-        },
-        {
-            "name": "native",
-            "steps": [
-                {
-                    "type": "configure",
-                    "name": "native"
-                },
-                {
-                    "type": "build",
-                    "name": "native"
-                },
-                {
-                    "type": "test",
-                    "name": "native"
                 }
             ]
         },
@@ -516,6 +510,23 @@
                 {
                     "type": "test",
                     "name": "linux-amd64-v3"
+                }
+            ]
+        },
+        {
+            "name": "build-native",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "native"
+                },
+                {
+                    "type": "build",
+                    "name": "native"
+                },
+                {
+                    "type": "test",
+                    "name": "native"
                 }
             ]
         },
@@ -579,6 +590,27 @@
                 {
                     "type": "package",
                     "name": "package-linux-amd64-v3"
+                }
+            ]
+        },
+        {
+            "name": "dist-native",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "native"
+                },
+                {
+                    "type": "build",
+                    "name": "native"
+                },
+                {
+                    "type": "test",
+                    "name": "native"
+                },
+                {
+                    "type": "package",
+                    "name": "package-native"
                 }
             ]
         }

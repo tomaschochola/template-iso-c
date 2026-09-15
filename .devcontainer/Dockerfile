@@ -30,29 +30,30 @@ ADD --checksum=sha256:2efc974dbd63b4444c0e8494b92f2e80c2d7e635b4b80eac2916985ddd
 
 FROM cmake-${TARGETARCH} AS cmake
 
-FROM docker.io/library/gcc:trixie@sha256:b98be39c2378222af9dcab6a5b1707d74b47d7c413c8569d5429a4cbfefbe981
+FROM docker.io/library/ubuntu:26.04@sha256:513c074113a871b51a8d16ab445c88779d6452d937a164fb5cc479f32668a41d
 
 COPY --from=node /tmp/node.tgz /tmp/node.tgz
 COPY --from=cmake /tmp/cmake.tgz /tmp/cmake.tgz
 
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get upgrade --yes --no-install-recommends \
-    && DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends git make ninja-build openssh-client sudo valgrind \
+    && DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends gcc-16 libc6-dev git make ninja-build openssh-client sudo valgrind \
+    && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-16 160 \
+    && update-alternatives --install /usr/bin/cc cc /usr/bin/gcc-16 160 \
     && tar --extract --gzip --file /tmp/cmake.tgz --directory /usr/local --strip-components=1 \
     && tar --extract --gzip --file /tmp/node.tgz --directory /usr/local --strip-components=1 --exclude='*/README.md' --exclude='*/CHANGELOG.md' --exclude='*/LICENSE' \
     && rm --force -- /tmp/cmake.tgz /tmp/node.tgz \
-    && groupadd --gid 1000 devcontainer \
-    && useradd --uid 1000 --gid devcontainer --shell /bin/bash --create-home devcontainer \
-    && install --directory --owner devcontainer --group devcontainer \
-        /home/devcontainer/.local \
-        /home/devcontainer/.local/bin \
-        /home/devcontainer/.local/lib \
-        /home/devcontainer/.local/lib/node_modules \
-    && printf '%s\n' 'devcontainer ALL=(root) NOPASSWD:ALL' > /etc/sudoers.d/devcontainer \
-    && chmod 0440 /etc/sudoers.d/devcontainer \
+    && usermod --shell /bin/bash ubuntu \
+    && install --directory --owner ubuntu --group ubuntu \
+        /home/ubuntu/.local \
+        /home/ubuntu/.local/bin \
+        /home/ubuntu/.local/lib \
+        /home/ubuntu/.local/lib/node_modules \
+    && printf '%s\n' 'ubuntu ALL=(root) NOPASSWD:ALL' > /etc/sudoers.d/ubuntu \
+    && chmod 0440 /etc/sudoers.d/ubuntu \
     && rm -rf /var/lib/apt/lists/*
 
-ENV NPM_CONFIG_PREFIX=/home/devcontainer/.local
-ENV PATH=/home/devcontainer/.local/bin:${PATH}
+ENV NPM_CONFIG_PREFIX=/home/ubuntu/.local
+ENV PATH=/home/ubuntu/.local/bin:${PATH}
 
-USER devcontainer
+USER ubuntu

@@ -32,11 +32,12 @@ CC ?= gcc
 CFLAGS ?=
 LDFLAGS ?=
 DESTDIR ?=
-VERSION ?= 0.0.0
-SOURCE_DATE_EPOCH ?= 0
+VERSION ?= $(shell v=$$(git describe --tags --abbrev=0 2>/dev/null || echo 0.0.0); v=$${v#v}; echo "$$v")
+SOURCE_DATE_EPOCH ?= $(shell git log -1 --format=%ct 2>/dev/null || echo 0)
 PROGRAM := template-iso-c
 prefix ?= /usr/local
 SUDO ?= sudo
+TARBALL ?= dist/template-iso-c-$(VERSION)-native.tar.gz
 
 COVERAGE_MIN ?= 100
 COVERAGE_BRANCH_MIN ?= 100
@@ -75,13 +76,13 @@ analyze: npm_check
 coverage:
 	rm --force --recursive --one-file-system -- ./out/build/coverage
 	cmake --workflow --preset coverage
-	cd ./out/build/coverage && LC_ALL=C gcov --branch-counts --branch-probabilities --conditions --function-summaries $$(find . -name '*.gcda')
-	cd ./out/build/coverage && LC_ALL=C gcov --branch-counts --branch-probabilities --conditions --function-summaries $$(find . -name '*.gcda') | awk -v lines_min="$(COVERAGE_MIN)" -v branch_min="$(COVERAGE_BRANCH_MIN)" -v calls_min="$(COVERAGE_CALL_MIN)" -v cond_min="$(COVERAGE_CONDITION_MIN)" 'BEGIN { bad = 0 } /^Lines executed:/ { coverage = $$2; sub(/^[^:]*:/, "", coverage); sub(/%$$/, "", coverage); if (lines_min != "" && coverage + 0 < lines_min + 0) { print "lines below minimum: " $$0 > "/dev/stderr"; bad = 1 } } /^Taken at least once:/ { coverage = $$4; sub(/^[^:]*:/, "", coverage); sub(/%$$/, "", coverage); if (branch_min != "" && coverage + 0 < branch_min + 0) { print "branches below minimum: " $$0 > "/dev/stderr"; bad = 1 } } /^Calls executed:/ { coverage = $$2; sub(/^[^:]*:/, "", coverage); sub(/%$$/, "", coverage); if (calls_min != "" && coverage + 0 < calls_min + 0) { print "calls below minimum: " $$0 > "/dev/stderr"; bad = 1 } } /^Condition outcomes covered:/ { coverage = $$2; sub(/^[^:]*:/, "", coverage); sub(/%$$/, "", coverage); if (cond_min != "" && coverage + 0 < cond_min + 0) { print "conditions below minimum: " $$0 > "/dev/stderr"; bad = 1 } } END { exit bad }'
+	cd ./out/build/coverage && find . -name '*.gcda' -print0 | xargs -0 -r env LC_ALL=C gcov --branch-counts --branch-probabilities --conditions --function-summaries
+	cd ./out/build/coverage && find . -name '*.gcda' -print0 | xargs -0 -r env LC_ALL=C gcov --json-format --branch-counts --branch-probabilities --conditions --function-summaries > /dev/null && python3 -c 'import gzip,json,glob,sys; m=list(map(float,sys.argv[1:5])); ls=[l for f in glob.glob("*.gcov.json.gz") for e in json.load(gzip.open(f)).get("files",[]) for l in e.get("lines",[])]; lt=len(ls); lc=sum(1 for l in ls if l.get("count",0)>0); bs=[b for l in ls for b in l.get("branches",[])]; bt=len(bs); bc=sum(1 for b in bs if b.get("count",0)>0); ct=sum(len(l.get("calls",[])) for l in ls); cc=sum(len(l.get("calls",[])) for l in ls if l.get("count",0)>0); dt=sum(k.get("count",0) for l in ls for k in l.get("conditions",[])); dc=sum(k.get("covered",0) for l in ls for k in l.get("conditions",[])); pct=lambda a,b: 100.0 if b==0 else 100.0*a/b; bad=(pct(lc,lt)<m[0] or (bt and pct(bc,bt)<m[1]) or (ct and pct(cc,ct)<m[2]) or (dt and pct(dc,dt)<m[3])); sys.exit(1 if bad else 0)' $(COVERAGE_MIN) $(COVERAGE_BRANCH_MIN) $(COVERAGE_CALL_MIN) $(COVERAGE_CONDITION_MIN)
 
 .PHONY: memcheck
 memcheck:
 	cmake --workflow --preset memcheck
-	ctest --test-dir ./out/build/valgrind --output-on-failure -T MemCheck
+	ctest --test-dir ./out/build/memcheck --output-on-failure -T MemCheck
 
 .PHONY: audit
 audit: npm_audit
@@ -101,54 +102,37 @@ all:
 	cmake --workflow --preset build-linux-amd64-v1
 	cmake --workflow --preset build-linux-amd64-v2
 	cmake --workflow --preset build-linux-amd64-v3
+	cmake --workflow --preset build-native
 
 .PHONY: dist
-dist: dist_metadata_check
+dist:
 	cmake --workflow --preset dist-linux-amd64-v1
 	cmake --workflow --preset dist-linux-amd64-v2
 	cmake --workflow --preset dist-linux-amd64-v3
-
-.PHONY: native
-native:
-	cmake --workflow --preset native
+	cmake --workflow --preset dist-native
 
 .PHONY: install
-install: native
-	DESTDIR="$(DESTDIR)" cmake --install ./out/build/native --prefix "$(prefix)"
+install:
+	cmake --workflow --preset build-native
+	$(SUDO) env DESTDIR="$(DESTDIR)" cmake --install ./out/build/native --prefix "$(prefix)"
 
 .PHONY: uninstall
 uninstall:
-	rm --force -- "$(DESTDIR)$(prefix)/bin/$(PROGRAM)"
-	rm --force -- "$(DESTDIR)$(prefix)/lib/libtemplate_iso_c_app.a"
-	rm --force -- "$(DESTDIR)$(prefix)/include/template_iso_c/todo.h"
-	rm --force -- "$(DESTDIR)$(prefix)/include/template_iso_c/export.h"
-	rm --force -- "$(DESTDIR)$(prefix)/lib/cmake/template-iso-c/template-iso-cConfig.cmake"
-	rm --force -- "$(DESTDIR)$(prefix)/lib/cmake/template-iso-c/template-iso-cConfigVersion.cmake"
-	rm --force -- "$(DESTDIR)$(prefix)/lib/cmake/template-iso-c/template-iso-cTargets.cmake"
-	rm --force -- "$(DESTDIR)$(prefix)/lib/cmake/template-iso-c/template-iso-cTargets-release.cmake"
-	rm --force -- "$(DESTDIR)$(prefix)/share/doc/template-iso-c/LICENSE"
+	$(SUDO) rm --force -- "$(DESTDIR)$(prefix)/bin/$(PROGRAM)"
+	$(SUDO) rm --force -- "$(DESTDIR)$(prefix)/share/doc/template-iso-c/LICENSE"
 
 .PHONY: installcheck
 installcheck:
 	test -f "$(DESTDIR)$(prefix)/bin/$(PROGRAM)"
 	test -x "$(DESTDIR)$(prefix)/bin/$(PROGRAM)"
-	test -f "$(DESTDIR)$(prefix)/lib/libtemplate_iso_c_app.a"
-	test -f "$(DESTDIR)$(prefix)/include/template_iso_c/todo.h"
-	test -f "$(DESTDIR)$(prefix)/include/template_iso_c/export.h"
-	test -f "$(DESTDIR)$(prefix)/lib/cmake/template-iso-c/template-iso-cConfig.cmake"
-	test -f "$(DESTDIR)$(prefix)/lib/cmake/template-iso-c/template-iso-cConfigVersion.cmake"
-	test -f "$(DESTDIR)$(prefix)/lib/cmake/template-iso-c/template-iso-cTargets.cmake"
-	test -f "$(DESTDIR)$(prefix)/lib/cmake/template-iso-c/template-iso-cTargets-release.cmake"
 	test -f "$(DESTDIR)$(prefix)/share/doc/template-iso-c/LICENSE"
 
-.PHONY: stage
-stage: native
-	cmake --install ./out/build/native --prefix ./stage/usr/local
-
-.PHONY: deploy
-deploy:
-	$(SUDO) install --directory -- $(DESTDIR)$(prefix)
-	$(SUDO) cp --archive -- stage/usr/local/. $(DESTDIR)$(prefix)/
+.PHONY: dist-install
+dist-install:
+	cmake --workflow --preset dist-native
+	cd $(dir $(TARBALL)) && sha256sum --check $(notdir $(TARBALL)).sha256
+	$(SUDO) install --directory -- "$(DESTDIR)$(prefix)"
+	$(SUDO) tar --extract --gzip --file "$(TARBALL)" --directory "$(DESTDIR)$(prefix)" --strip-components=1 --no-same-owner
 
 .PHONY: postcreate
 postcreate: deps_install
@@ -175,7 +159,7 @@ rebuild: devcontainer_check down
 
 .PHONY: clean
 clean:
-	rm --force --recursive --one-file-system -- ./dist ./out ./stage
+	rm --force --recursive --one-file-system -- ./dist ./out
 
 .PHONY: distclean
 distclean: clean deps_clean
@@ -187,11 +171,6 @@ deps_install: npm_install
 
 .PHONY: deps_clean
 deps_clean: npm_clean
-
-.PHONY: dist_metadata_check
-dist_metadata_check:
-	if [[ ! "$${SOURCE_DATE_EPOCH}" =~ ^[0-9]+$$ ]]; then printf '%s\n' 'SOURCE_DATE_EPOCH must contain only decimal digits' >&2; exit 1; fi
-	if [[ ! "$${VERSION}" =~ ^[A-Za-z0-9][A-Za-z0-9._+-]*$$ ]]; then printf '%s\n' 'VERSION contains unsupported characters' >&2; exit 1; fi
 
 .PHONY: trimmer_fix
 trimmer_fix: ./node_modules/.package-lock.json ./package.json ./package-lock.json
