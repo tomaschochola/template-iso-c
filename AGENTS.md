@@ -1,15 +1,15 @@
 # AGENTS.md
 
-You write strict ISO C23 software for native GNU/Linux on x86_64-pc-linux-gnu (kernel 7.0, glibc 2.43, `_GNU_SOURCE` with POSIX.1-2024: `_POSIX_C_SOURCE=202405L`, `_XOPEN_SOURCE=800`): explicit warning-clean code, verified by fanalyzer, sanitizers, and a 100% coverage gate, shipped as portable release artifacts.
+You write ISO/IEC 9899:2024 C (`-std=c23`) for 64-bit little-endian GNU/Linux (LP64): kernel 7.x with glibc, build matrix `x86_64-pc-linux-gnu` (x86-64-v1/v2/v3) and `aarch64-linux-gnu` (armv8-a/armv9-a), API surface POSIX.1-2024 via `_GNU_SOURCE` (`_POSIX_C_SOURCE=202405L`, `_XOPEN_SOURCE=800`).
 
 ## Target
 
 - OS: GNU/Linux
 - Kernel: Linux 7.0
-- Triple: x86_64-pc-linux-gnu
-- Arch: x86_64
+- Triple: x86_64-pc-linux-gnu, aarch64-linux-gnu
+- Arch: x86_64, aarch64
 - Bits: 64-bit, LP64, little-endian
-- ISA: x86-64-v1, x86-64-v2, x86-64-v3
+- ISA: x86-64-v1, x86-64-v2, x86-64-v3, armv8-a, armv9-a
 - Libc: glibc 2.43
 - Interface: POSIX.1-2024
 
@@ -37,17 +37,17 @@ You write strict ISO C23 software for native GNU/Linux on x86_64-pc-linux-gnu (k
 
 ## Stack
 
-- CC: gcc 16
-- Libc: glibc
-- Build: cmake 4.4 + ninja
-- Test: ctest + valgrind
-- Pack: cpack (TGZ)
-- Format: prettier + trimmer (node 24)
-- Orchestration: makefile
+- CC: gcc 16.2
+- Libc: glibc 2.43
+- Build: cmake 4.4 + ninja 1.13
+- Test: ctest 4.4 + valgrind 3.25
+- Pack: cpack 4.4
 
 ## Devcontainer
 
-- Base: Ubuntu 26.04 + GCC 16 (universe) + Kitware CMake + Node.js tarballs (amd64/arm64)
+- Base: Ubuntu 26.04.1 LTS (Resolute Raccoon)
+- Toolchain: GCC + cross (universe)
+- Tooling: Kitware CMake + Node.js tarballs (amd64/arm64)
 - User: ubuntu
 - Sidecars: none
 - Ports: 61220-61229
@@ -63,8 +63,8 @@ You write strict ISO C23 software for native GNU/Linux on x86_64-pc-linux-gnu (k
 - `coverage`: gcov 100% src lines/branches/calls/conditions (tests measured, src gated)
 - `memcheck`: memcheck clean (leak-check=full + track-origins)
 - `san`: asan + ubsan + tsan + lsan clean
-- `all`: v1 + v2 + v3 + native binaries
-- `dist`: v1 + v2 + v3 + native tarballs
+- `all`: v1 + v2 + v3 + arm64 (armv8-a, armv9-a) + native binaries
+- `dist`: v1 + v2 + v3 + arm64 (armv8-a, armv9-a) + native tarballs
 - `audit`: npm audit clean
 - `install`: native build + install to prefix (SUDO for system prefix)
 - `uninstall`: remove install (uses `SUDO` like `install`)
@@ -94,10 +94,14 @@ You write strict ISO C23 software for native GNU/Linux on x86_64-pc-linux-gnu (k
 - `build-linux-amd64-v1`: v1
 - `build-linux-amd64-v2`: v2
 - `build-linux-amd64-v3`: v3
+- `build-linux-arm64-armv8-a`: armv8-a
+- `build-linux-arm64-armv9-a`: armv9-a
 - `build-native`: native build
 - `dist-linux-amd64-v1`: v1 tarball
 - `dist-linux-amd64-v2`: v2 tarball
 - `dist-linux-amd64-v3`: v3 tarball
+- `dist-linux-arm64-armv8-a`: armv8-a tarball
+- `dist-linux-arm64-armv9-a`: armv9-a tarball
 - `dist-native`: native tarball
 
 ## Tree

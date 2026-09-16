@@ -37,7 +37,7 @@ COPY --from=cmake /tmp/cmake.tgz /tmp/cmake.tgz
 
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get upgrade --yes --no-install-recommends \
-    && DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends ca-certificates gcc-16 git libc6-dev make ninja-build openssh-client sudo valgrind \
+    && DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends ca-certificates gcc-16 gcc-aarch64-linux-gnu gcc-x86-64-linux-gnu git libc6-dev make ninja-build openssh-client sudo valgrind \
     && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-16 160 \
     && update-alternatives --install /usr/bin/cc cc /usr/bin/gcc-16 160 \
     && tar --extract --gzip --file /tmp/cmake.tgz --directory /usr/local --strip-components=1 \

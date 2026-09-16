@@ -19,7 +19,7 @@ endif()
 project(
     template_iso_c
     VERSION "${TEMPLATE_ISO_C_VERSION}"
-    DESCRIPTION "Native GNU/Linux GCC ISO C23 project template"
+    DESCRIPTION "GNU/Linux GCC ISO C23 project template"
     LANGUAGES C
 )
 
@@ -27,8 +27,14 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
     message(FATAL_ERROR "template-iso-c supports GNU/Linux only")
 endif()
 
-if(CMAKE_CROSSCOMPILING)
-    message(FATAL_ERROR "template-iso-c supports native builds only")
+if(CMAKE_CROSSCOMPILING
+    AND NOT (
+        CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux"
+        AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|aarch64)$"
+        AND CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "^(x86_64|aarch64)$"
+    )
+)
+    message(FATAL_ERROR "template-iso-c supports native builds plus Linux x86_64<->aarch64 cross only")
 endif()
 
 if(NOT CMAKE_C_COMPILER_ID STREQUAL "GNU")

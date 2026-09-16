@@ -102,6 +102,8 @@ all:
 	cmake --workflow --preset build-linux-amd64-v1
 	cmake --workflow --preset build-linux-amd64-v2
 	cmake --workflow --preset build-linux-amd64-v3
+	cmake --workflow --preset build-linux-arm64-armv8-a
+	cmake --workflow --preset build-linux-arm64-armv9-a
 	cmake --workflow --preset build-native
 
 .PHONY: dist
@@ -109,6 +111,8 @@ dist:
 	cmake --workflow --preset dist-linux-amd64-v1
 	cmake --workflow --preset dist-linux-amd64-v2
 	cmake --workflow --preset dist-linux-amd64-v3
+	cmake --workflow --preset dist-linux-arm64-armv8-a
+	cmake --workflow --preset dist-linux-arm64-armv9-a
 	cmake --workflow --preset dist-native
 
 .PHONY: install

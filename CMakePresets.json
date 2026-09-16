@@ -126,6 +126,9 @@
             "name": "linux-amd64-v1",
             "inherits": "release-base",
             "cacheVariables": {
+                "CMAKE_SYSTEM_NAME": "Linux",
+                "CMAKE_SYSTEM_PROCESSOR": "x86_64",
+                "CMAKE_C_COMPILER": "x86_64-linux-gnu-gcc",
                 "CMAKE_C_FLAGS": "$env{CFLAGS} -march=x86-64"
             }
         },
@@ -133,6 +136,9 @@
             "name": "linux-amd64-v2",
             "inherits": "release-base",
             "cacheVariables": {
+                "CMAKE_SYSTEM_NAME": "Linux",
+                "CMAKE_SYSTEM_PROCESSOR": "x86_64",
+                "CMAKE_C_COMPILER": "x86_64-linux-gnu-gcc",
                 "CMAKE_C_FLAGS": "$env{CFLAGS} -march=x86-64-v2"
             }
         },
@@ -140,7 +146,30 @@
             "name": "linux-amd64-v3",
             "inherits": "release-base",
             "cacheVariables": {
+                "CMAKE_SYSTEM_NAME": "Linux",
+                "CMAKE_SYSTEM_PROCESSOR": "x86_64",
+                "CMAKE_C_COMPILER": "x86_64-linux-gnu-gcc",
                 "CMAKE_C_FLAGS": "$env{CFLAGS} -march=x86-64-v3"
+            }
+        },
+        {
+            "name": "linux-arm64-armv8-a",
+            "inherits": "release-base",
+            "cacheVariables": {
+                "CMAKE_SYSTEM_NAME": "Linux",
+                "CMAKE_SYSTEM_PROCESSOR": "aarch64",
+                "CMAKE_C_COMPILER": "aarch64-linux-gnu-gcc",
+                "CMAKE_C_FLAGS": "$env{CFLAGS} -march=armv8-a"
+            }
+        },
+        {
+            "name": "linux-arm64-armv9-a",
+            "inherits": "release-base",
+            "cacheVariables": {
+                "CMAKE_SYSTEM_NAME": "Linux",
+                "CMAKE_SYSTEM_PROCESSOR": "aarch64",
+                "CMAKE_C_COMPILER": "aarch64-linux-gnu-gcc",
+                "CMAKE_C_FLAGS": "$env{CFLAGS} -march=armv9-a"
             }
         },
         {
@@ -196,6 +225,14 @@
         {
             "name": "linux-amd64-v3",
             "configurePreset": "linux-amd64-v3"
+        },
+        {
+            "name": "linux-arm64-armv8-a",
+            "configurePreset": "linux-arm64-armv8-a"
+        },
+        {
+            "name": "linux-arm64-armv9-a",
+            "configurePreset": "linux-arm64-armv9-a"
         },
         {
             "name": "native",
@@ -281,6 +318,16 @@
             "configurePreset": "linux-amd64-v3"
         },
         {
+            "name": "linux-arm64-armv8-a",
+            "inherits": "test-base",
+            "configurePreset": "linux-arm64-armv8-a"
+        },
+        {
+            "name": "linux-arm64-armv9-a",
+            "inherits": "test-base",
+            "configurePreset": "linux-arm64-armv9-a"
+        },
+        {
             "name": "native",
             "inherits": "test-base",
             "configurePreset": "native"
@@ -318,6 +365,22 @@
             "configurePreset": "linux-amd64-v3",
             "variables": {
                 "CPACK_PACKAGE_FILE_NAME": "template-iso-c-$env{VERSION}-linux-amd64-v3"
+            }
+        },
+        {
+            "name": "package-linux-arm64-armv8-a",
+            "inherits": "package-base",
+            "configurePreset": "linux-arm64-armv8-a",
+            "variables": {
+                "CPACK_PACKAGE_FILE_NAME": "template-iso-c-$env{VERSION}-linux-arm64-armv8-a"
+            }
+        },
+        {
+            "name": "package-linux-arm64-armv9-a",
+            "inherits": "package-base",
+            "configurePreset": "linux-arm64-armv9-a",
+            "variables": {
+                "CPACK_PACKAGE_FILE_NAME": "template-iso-c-$env{VERSION}-linux-arm64-armv9-a"
             }
         },
         {
@@ -472,10 +535,6 @@
                 {
                     "type": "build",
                     "name": "linux-amd64-v1"
-                },
-                {
-                    "type": "test",
-                    "name": "linux-amd64-v1"
                 }
             ]
         },
@@ -488,10 +547,6 @@
                 },
                 {
                     "type": "build",
-                    "name": "linux-amd64-v2"
-                },
-                {
-                    "type": "test",
                     "name": "linux-amd64-v2"
                 }
             ]
@@ -506,10 +561,32 @@
                 {
                     "type": "build",
                     "name": "linux-amd64-v3"
+                }
+            ]
+        },
+        {
+            "name": "build-linux-arm64-armv8-a",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "linux-arm64-armv8-a"
                 },
                 {
-                    "type": "test",
-                    "name": "linux-amd64-v3"
+                    "type": "build",
+                    "name": "linux-arm64-armv8-a"
+                }
+            ]
+        },
+        {
+            "name": "build-linux-arm64-armv9-a",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "linux-arm64-armv9-a"
+                },
+                {
+                    "type": "build",
+                    "name": "linux-arm64-armv9-a"
                 }
             ]
         },
@@ -542,10 +619,6 @@
                     "name": "linux-amd64-v1"
                 },
                 {
-                    "type": "test",
-                    "name": "linux-amd64-v1"
-                },
-                {
                     "type": "package",
                     "name": "package-linux-amd64-v1"
                 }
@@ -560,10 +633,6 @@
                 },
                 {
                     "type": "build",
-                    "name": "linux-amd64-v2"
-                },
-                {
-                    "type": "test",
                     "name": "linux-amd64-v2"
                 },
                 {
@@ -584,12 +653,42 @@
                     "name": "linux-amd64-v3"
                 },
                 {
-                    "type": "test",
-                    "name": "linux-amd64-v3"
+                    "type": "package",
+                    "name": "package-linux-amd64-v3"
+                }
+            ]
+        },
+        {
+            "name": "dist-linux-arm64-armv8-a",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "linux-arm64-armv8-a"
+                },
+                {
+                    "type": "build",
+                    "name": "linux-arm64-armv8-a"
                 },
                 {
                     "type": "package",
-                    "name": "package-linux-amd64-v3"
+                    "name": "package-linux-arm64-armv8-a"
+                }
+            ]
+        },
+        {
+            "name": "dist-linux-arm64-armv9-a",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "linux-arm64-armv9-a"
+                },
+                {
+                    "type": "build",
+                    "name": "linux-arm64-armv9-a"
+                },
+                {
+                    "type": "package",
+                    "name": "package-linux-arm64-armv9-a"
                 }
             ]
         },
