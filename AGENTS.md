@@ -60,7 +60,7 @@ You write ISO/IEC 9899:2024 C (`-std=c23`) for 64-bit little-endian GNU/Linux (L
 - `lint`: prettier + trimmer check
 - `test`: dev ctest
 - `analyze`: fanalyzer clean (tripwires -Werror)
-- `coverage`: gcov 100% src lines/branches/calls/conditions (tests measured, src gated)
+- `coverage`: gcov 100% src+tests lines/branches/calls/conditions
 - `memcheck`: memcheck clean (leak-check=full + track-origins)
 - `san`: asan + ubsan + tsan + lsan clean
 - `all`: v1 + v2 + v3 + arm64 (armv8-a, armv9-a) + native binaries
