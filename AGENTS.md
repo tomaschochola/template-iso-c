@@ -1,6 +1,6 @@
 # AGENTS.md
 
-You write ISO/IEC 9899:2024 C (`-std=c23`) for 64-bit little-endian GNU/Linux (LP64): kernel 7.x with glibc, build matrix `x86_64-pc-linux-gnu` (x86-64-v1/v2/v3) and `aarch64-linux-gnu` (armv8-a/armv9-a), API surface POSIX.1-2024 via `_GNU_SOURCE` (`_POSIX_C_SOURCE=202405L`, `_XOPEN_SOURCE=800`).
+Do serious software engineering in ISO/IEC 9899:2024 C (`-std=c23`) for 64-bit little-endian GNU/Linux (LP64) on kernel 7.x with glibc. Target the `x86_64-pc-linux-gnu` build matrix for x86-64-v1, x86-64-v2, and x86-64-v3 and the `aarch64-linux-gnu` build matrix for armv8-a and armv9-a. Expose the POSIX.1-2024 API surface through `_GNU_SOURCE`, including `_POSIX_C_SOURCE=202405L` and `_XOPEN_SOURCE=800`.
 
 ## Target
 
@@ -43,87 +43,63 @@ You write ISO/IEC 9899:2024 C (`-std=c23`) for 64-bit little-endian GNU/Linux (L
 - Test: ctest 4.4 + valgrind 3.25
 - Pack: cpack 4.4
 
-## Devcontainer
-
-- Base: Ubuntu 26.04.1 LTS (Resolute Raccoon)
-- Toolchain: GCC + cross (universe)
-- Tooling: Kitware CMake + Node.js tarballs (amd64/arm64)
-- User: ubuntu
-- Sidecars: none
-- Ports: 61220-61229
-
 ## Makefile
 
-- `fix`: prettier + trimmer autofix
-- `check`: doctor + lint + analyze + test + coverage + memcheck + all + san + audit
-- `doctor`: git + npm + toolchain ok
-- `lint`: prettier + trimmer check
-- `test`: dev ctest
-- `analyze`: fanalyzer clean (tripwires -Werror)
-- `coverage`: gcov 100% src+tests lines/branches/calls/conditions
-- `memcheck`: memcheck clean (leak-check=full + track-origins)
-- `san`: asan + ubsan + tsan + lsan clean
-- `all`: v1 + v2 + v3 + arm64 (armv8-a, armv9-a) + native binaries
-- `dist`: v1 + v2 + v3 + arm64 (armv8-a, armv9-a) + native tarballs
-- `audit`: npm audit clean
-- `install`: native build + install to prefix (SUDO for system prefix)
-- `uninstall`: remove install (uses `SUDO` like `install`)
-- `installcheck`: install ok
-- `dist-install`: unpack `TARBALL` to prefix (SUDO for system prefix)
-- `update`: refresh locks, only tool that may touch them
-- `postcreate`: first-time setup, runs automatically on create
+- `fix`: autofix with prettier and trimmer
+- `check`: run doctor, lint, analyze, test, memcheck, all, san, and audit
+- `doctor`: verify git, npm, and toolchain status
+- `lint`: check with prettier and trimmer
+- `test`: run ctest with dev preset
+- `analyze`: run fanalyzer workflow with warnings as errors
+- `coverage`: print gcov report on demand
+- `memcheck`: run memcheck workflow with full leak check and origin tracking
+- `san`: run address, undefined behavior, thread, and leak sanitizer workflows
+- `all`: build release binaries for x86-64-v1, x86-64-v2, x86-64-v3, armv8-a, armv9-a, and native
+- `dist`: create release tarballs for x86-64-v1, x86-64-v2, x86-64-v3, armv8-a, armv9-a, and native
+- `audit`: run npm audit with no findings
+- `install`: build native release and install to prefix, use `SUDO` for system prefix
+- `uninstall`: remove installed files, use `SUDO` as for install
+- `installcheck`: verify installed files exist and are executable
+- `dist-install`: verify tarball checksum and unpack `TARBALL` to prefix, use `SUDO` for system prefix
+- `update`: refresh lock files, the only target that may touch them
+- `postcreate`: run first-time setup automatically on container creation
 - `up`: start devcontainer
 - `shell`: open shell in devcontainer
-- `stop`: stop container, keep it
-- `down`: stop and remove container
-- `clean`: drop out + dist
-- `distclean`: clean + drop node_modules
-- `rebuild`: full rebuild, only when broken
-- `devcontainer_check`: validate devcontainer config
+- `stop`: stop container and keep it
+- `down`: stop container and remove it
+- `clean`: remove out and dist directories
+- `distclean`: run clean and remove node_modules
+- `rebuild`: rebuild container from scratch, use only when broken
+- `devcontainer_check`: validate devcontainer configuration
 
 ## Workflows
 
-- `dev`: debug
-- `analyzer`: fanalyzer
-- `asan`: address, UB
-- `ubsan`: UB
-- `tsan`: threads
-- `lsan`: leaks
-- `memcheck`: memcheck build
-- `coverage`: coverage build
-- `build-linux-amd64-v1`: v1
-- `build-linux-amd64-v2`: v2
-- `build-linux-amd64-v3`: v3
-- `build-linux-arm64-armv8-a`: armv8-a
-- `build-linux-arm64-armv9-a`: armv9-a
-- `build-native`: native build
-- `dist-linux-amd64-v1`: v1 tarball
-- `dist-linux-amd64-v2`: v2 tarball
-- `dist-linux-amd64-v3`: v3 tarball
-- `dist-linux-arm64-armv8-a`: armv8-a tarball
-- `dist-linux-arm64-armv9-a`: armv9-a tarball
-- `dist-native`: native tarball
-
-## Tree
-
-```text
-├── Makefile
-├── .editorconfig
-├── .devcontainer/
-├── CMakeLists.txt
-├── CMakePresets.json
-├── package.json
-├── prettier.config.js
-├── LICENSE
-├── AUTHORS.md
-├── src/
-└── tests/
-```
+- `dev`: debug build and tests
+- `analyzer`: static analysis with fanalyzer
+- `asan`: address sanitizer with undefined behavior checks
+- `ubsan`: undefined behavior sanitizer
+- `tsan`: thread sanitizer
+- `lsan`: leak sanitizer
+- `memcheck`: valgrind memcheck build
+- `coverage`: coverage build with gcov report
+- `build-linux-amd64-v1`: release build for x86-64-v1
+- `build-linux-amd64-v2`: release build for x86-64-v2
+- `build-linux-amd64-v3`: release build for x86-64-v3
+- `build-linux-arm64-armv8-a`: release build for armv8-a
+- `build-linux-arm64-armv9-a`: release build for armv9-a
+- `build-native`: release build for native architecture
+- `dist-linux-amd64-v1`: release tarball for x86-64-v1
+- `dist-linux-amd64-v2`: release tarball for x86-64-v2
+- `dist-linux-amd64-v3`: release tarball for x86-64-v3
+- `dist-linux-arm64-armv8-a`: release tarball for armv8-a
+- `dist-linux-arm64-armv9-a`: release tarball for armv9-a
+- `dist-native`: release tarball for native architecture
 
 ## ISO/IEC 9899:2024
 
 ### Language syntax
 
+```text
 token:
 	keyword
 	identifier
@@ -813,6 +789,7 @@ d-wchar-sequence:
 	nondigit
 	d-wchar-sequence digit
 	d-wchar-sequence nondigit
+```
 
 ### Limits
 
