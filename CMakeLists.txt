@@ -24,7 +24,7 @@ project(
 )
 
 if(NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    message(FATAL_ERROR "template-iso-c supports GNU/Linux only")
+    message(FATAL_ERROR "GNU/Linux is required")
 endif()
 
 if(CMAKE_CROSSCOMPILING
@@ -34,11 +34,11 @@ if(CMAKE_CROSSCOMPILING
         AND CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "^(x86_64|aarch64)$"
     )
 )
-    message(FATAL_ERROR "template-iso-c supports native builds plus Linux x86_64<->aarch64 cross only")
+    message(FATAL_ERROR "Only native builds and GNU/Linux x86_64<->aarch64 cross-builds are supported")
 endif()
 
 if(NOT CMAKE_C_COMPILER_ID STREQUAL "GNU")
-    message(FATAL_ERROR "template-iso-c requires GCC")
+    message(FATAL_ERROR "GCC is required")
 endif()
 
 include(GNUInstallDirs)
