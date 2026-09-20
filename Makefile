@@ -39,6 +39,7 @@ PROGRAM := template-iso-c
 prefix ?= /usr/local
 SUDO ?= sudo
 TARBALL ?= dist/template-iso-c-$(VERSION)-native.tar.gz
+MCCABE_MAX ?= 10
 
 export CC
 export CFLAGS
@@ -50,24 +51,24 @@ export SOURCE_DATE_EPOCH
 # Public goals
 
 .PHONY: fix
-fix: prettier_fix trimmer_fix
+fix: prettier_fix clang_format_fix trimmer_fix
 
 .PHONY: check
-check: doctor lint analyze test memcheck all san audit
+check: doctor lint fanalyzer test valgrind mccabe all sanitize audit
 
 .PHONY: doctor
-doctor: git_check npm_config_check npm_doctor cc_check
+doctor: git_check npm_config_check npm_doctor npm_check cc_check
 
 .PHONY: lint
-lint: prettier_check trimmer_check
+lint: prettier_check clang_format_check trimmer_check
 
 .PHONY: test
 test:
 	cmake --workflow --preset dev
 
-.PHONY: analyze
-analyze: npm_check
-	cmake --workflow --preset analyzer
+.PHONY: fanalyzer
+fanalyzer:
+	cmake --workflow --preset fanalyzer
 
 .PHONY: coverage
 coverage:
@@ -75,10 +76,17 @@ coverage:
 	cmake --workflow --preset coverage
 	cd ./out/build/coverage && find . -name '*.gcda' -print0 | xargs -0 -r gcov --branch-counts --branch-probabilities --conditions --function-summaries --all-blocks --unconditional-branches --preserve-paths
 
-.PHONY: memcheck
-memcheck:
-	cmake --workflow --preset memcheck
-	ctest --test-dir ./out/build/memcheck --output-on-failure --stop-on-failure --no-tests=error -T MemCheck
+.PHONY: valgrind
+valgrind:
+	cmake --workflow --preset valgrind
+	ctest --test-dir ./out/build/valgrind --output-on-failure --stop-on-failure --no-tests=error -T MemCheck
+
+.PHONY: mccabe
+mccabe:
+	rm --force --recursive --one-file-system -- ./out/build/coverage
+	cmake --workflow --preset coverage
+	test "$(MCCABE_MAX)" -ge 1
+	cd ./out/build/coverage && find . -name '*.gcda' -print0 | xargs -0 -r gcov --json-format --stdout --branch-probabilities --branch-counts --unconditional-branches | python3 -c $$'import sys,json\nfrom collections import defaultdict\nLIM=$(MCCABE_MAX)\nd=defaultdict(lambda: defaultdict(set))\nfor line in sys.stdin:\n line=line.strip()\n try:\n  doc=json.loads(line)\n except:\n  continue\n for f in doc.get("files",[]):\n  if f.get("file","").split("/")[-2]!="src":continue\n  for ln in f.get("lines",[]):\n   fn=ln.get("function_name")\n   if not fn:continue\n   for b in ln.get("branches",[]):\n    if b.get("throw"):continue\n    d[(f["file"],fn)][b["source_block_id"]].add(b["destination_block_id"])\nsys.exit(1 if any(1+sum(len(v)-1 for v in g.values() if len(v)>1)>LIM for g in d.values()) else 0)'
 
 .PHONY: audit
 audit: npm_audit
@@ -86,8 +94,8 @@ audit: npm_audit
 .PHONY: update
 update: npm_config_check ./package.json ./package-lock.json npm_update
 
-.PHONY: san
-san:
+.PHONY: sanitize
+sanitize:
 	cmake --workflow --preset asan
 	cmake --workflow --preset ubsan
 	cmake --workflow --preset tsan
@@ -188,6 +196,14 @@ prettier_fix: ./node_modules/.package-lock.json ./package.json ./package-lock.js
 prettier_check: ./node_modules/.package-lock.json ./package.json ./package-lock.json ./prettier.config.js
 	npm exec --no --ignore-scripts -- prettier -c .
 
+.PHONY: clang_format_fix
+clang_format_fix: ./.clang-format
+	find ./src ./tests -type f '(' -name '*.c' -o -name '*.h' ')' -print0 | xargs -0 -r clang-format -i --style=file --
+
+.PHONY: clang_format_check
+clang_format_check: ./.clang-format
+	find ./src ./tests -type f '(' -name '*.c' -o -name '*.h' ')' -print0 | xargs -0 -r clang-format -n --Werror --style=file --fallback-style=none --
+
 .PHONY: npm_config_check
 npm_config_check: ./.npmrc
 	test "$$(npm config get ignore-scripts)" = "true"
@@ -240,6 +256,7 @@ cc_check:
 	ctest --version
 	valgrind --version
 	gcov --version
+	clang-format --version
 
 .PHONY: devcontainer_check
 devcontainer_check:

@@ -1,11 +1,15 @@
 # AGENTS.md
 
-Do serious software engineering in ISO/IEC 9899:2024 C (`-std=c23`) for 64-bit little-endian GNU/Linux (LP64) on kernel 7.x with glibc. Target the `x86_64-pc-linux-gnu` build matrix for x86-64-v1, x86-64-v2, and x86-64-v3 and the `aarch64-linux-gnu` build matrix for armv8-a and armv9-a. Expose the POSIX.1-2024 API surface through `_GNU_SOURCE`, including `_POSIX_C_SOURCE=202405L` and `_XOPEN_SOURCE=800`.
+Do serious software engineering and serious computer science in ISO/IEC 9899:2024 C (`-std=c23`) for 64-bit little-endian GNU/Linux (LP64) on Linux 7.x with glibc. Target `x86_64-pc-linux-gnu` across x86-64-v1, x86-64-v2, and x86-64-v3 and `aarch64-linux-gnu` across armv8-a and armv9-a. Always define `_GNU_SOURCE` to enable the POSIX.1-2024 surface, including `_POSIX_C_SOURCE=202405L` and `_XOPEN_SOURCE=800`.
+
+Stay GNU/Linux native. Do not target Windows, macOS, or any other operating system. Do not target architectures, ISAs, or triples outside the build matrix below. Do not add backward compatibility, legacy support, or broad portability shims.
+
+Select APIs in strict priority order: the highest-level native `_GNU_SOURCE` glibc interface first, then Linux 7.x facilities via glibc, then POSIX/XOPEN, then ISO C alone, and custom code only as a last resort. Treat glibc plus POSIX plus XOPEN plus Linux as one standard library and use the maximum it offers. Within the matrix, always choose the newest stable, most secure, most performant, correct, memory-safe, UB-free, thread-safe, resource-safe, deterministic, and maintainable variant.
 
 ## Target
 
 - OS: GNU/Linux
-- Kernel: Linux 7.0
+- Kernel: Linux 7.x
 - Triple: x86_64-pc-linux-gnu, aarch64-linux-gnu
 - Arch: x86_64, aarch64
 - Bits: 64-bit, LP64, little-endian
@@ -20,7 +24,8 @@ Do serious software engineering in ISO/IEC 9899:2024 C (`-std=c23`) for 64-bit l
 
 ## Features
 
-- `_GNU_SOURCE=1`
+`_GNU_SOURCE=1` expanding into:
+
 - `_ISOC95_SOURCE=1`
 - `_ISOC99_SOURCE=1`
 - `_ISOC11_SOURCE=1`
@@ -37,63 +42,155 @@ Do serious software engineering in ISO/IEC 9899:2024 C (`-std=c23`) for 64-bit l
 
 ## Stack
 
-- CC: gcc 16.2
-- Libc: glibc 2.43
-- Build: cmake 4.4 + ninja 1.13
-- Test: ctest 4.4 + valgrind 3.25
-- Pack: cpack 4.4
+- gcc 16.2
+- glibc 2.43
+- cmake 4.4
+- ninja 1.13
+- ctest 4.4
+- valgrind 3.25
+- cpack 4.4
+- gcov 16.2
+- python3 3.14
+- clang-format 22
+- node 24
+- npm 12
+
+## EditorConfig
+
+```ini
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_size = 4
+indent_style = space
+insert_final_newline = true
+max_line_length = 200
+trim_trailing_whitespace = true
+
+[*.go]
+indent_size = tab
+indent_style = tab
+tab_width = 8
+
+[*.ini]
+max_line_length = off
+
+[*.md]
+indent_size = unset
+indent_style = unset
+max_line_length = off
+
+[*.txt]
+indent_size = unset
+indent_style = unset
+max_line_length = off
+
+[LICENSE]
+indent_size = unset
+indent_style = unset
+max_line_length = off
+
+[Makefile]
+indent_style = tab
+max_line_length = off
+```
+
+## Clang-Format
+
+```yaml
+---
+BasedOnStyle: LLVM
+Standard: Latest
+ColumnLimit: 200
+IndentWidth: 4
+ContinuationIndentWidth: 4
+BreakBeforeBraces: Linux
+AllowShortFunctionsOnASingleLine: None
+MaxEmptyLinesToKeep: 1
+SortIncludes: true
+InsertNewlineAtEOF: true
+LineEnding: LF
+UseTab: Never
+...
+```
 
 ## Makefile
 
-- `fix`: autofix with prettier and trimmer
-- `check`: run doctor, lint, analyze, test, memcheck, all, san, and audit
-- `doctor`: verify git, npm, and toolchain status
-- `lint`: check with prettier and trimmer
-- `test`: run ctest with dev preset
-- `analyze`: run fanalyzer workflow with warnings as errors
-- `coverage`: print gcov report on demand
-- `memcheck`: run memcheck workflow with full leak check and origin tracking
-- `san`: run address, undefined behavior, thread, and leak sanitizer workflows
-- `all`: build release binaries for x86-64-v1, x86-64-v2, x86-64-v3, armv8-a, armv9-a, and native
-- `dist`: create release tarballs for x86-64-v1, x86-64-v2, x86-64-v3, armv8-a, armv9-a, and native
-- `audit`: run npm audit with no findings
-- `install`: build native release and install to prefix, use `SUDO` for system prefix
-- `uninstall`: remove installed files, use `SUDO` as for install
-- `installcheck`: verify installed files exist and are executable
-- `dist-install`: verify tarball checksum and unpack `TARBALL` to prefix, use `SUDO` for system prefix
-- `update`: refresh lock files, the only target that may touch them
-- `postcreate`: run first-time setup automatically on container creation
-- `up`: start devcontainer
-- `shell`: open shell in devcontainer
-- `stop`: stop container and keep it
-- `down`: stop container and remove it
-- `clean`: remove out and dist directories
-- `distclean`: run clean and remove node_modules
-- `rebuild`: rebuild container from scratch, use only when broken
-- `devcontainer_check`: validate devcontainer configuration
+- `fix`: `prettier_fix` `clang_format_fix` `trimmer_fix`
+- `check`: `doctor` `lint` `fanalyzer` `test` `valgrind` `mccabe` `all` `sanitize` `audit`
+- `doctor`: `git_check` `npm_config_check` `npm_doctor` `npm_check` `cc_check`
+- `lint`: `prettier_check` `clang_format_check` `trimmer_check`
+- `test`: debug cmake build and ctest run
+- `fanalyzer`: fanalyzer cmake build and ctest run
+- `coverage`: coverage cmake build, ctest run, and gcov report
+- `mccabe`: McCabe gate on gcov JSON
+- `valgrind`: valgrind memcheck on ctest
+- `sanitize`: asan plus ubsan plus tsan plus lsan ctest runs
+- `all`: all matrix cmake release builds
+- `dist`: all matrix cpack tarballs
+- `audit`: `npm_audit`
+- `install`: cmake install of native release
+- `uninstall`: remove installed binary and documentation
+- `installcheck`: verify installed binary and license
+- `dist-install`: verify tarball checksum and install from tarball
+- `update`: `npm_config_check` `npm_update`
+- `postcreate`: `deps_install`
+- `up`: `devcontainer_check` start devcontainer
+- `shell`: `up` shell in devcontainer
+- `stop`: stop devcontainer
+- `down`: `stop` remove devcontainer
+- `clean`: remove out and dist
+- `distclean`: `clean` `deps_clean`
+- `rebuild`: `devcontainer_check` `down` rebuild devcontainer
+- `deps_install`: `npm_install`
+- `deps_clean`: `npm_clean`
+- `trimmer_fix`: trimmer autofix
+- `trimmer_check`: trimmer check
+- `prettier_fix`: prettier autofix
+- `prettier_check`: prettier check
+- `clang_format_fix`: clang-format autofix C sources
+- `clang_format_check`: clang-format check C sources
+- `npm_config_check`: verify npm config
+- `npm_doctor`: npm doctor
+- `npm_check`: `npm_config_check` verify npm tree
+- `npm_audit`: `npm_config_check` npm audit
+- `npm_install`: `npm_config_check` install npm dependencies
+- `npm_update`: `npm_config_check` `npm_clean` update npm dependencies
+- `npm_clean`: remove node_modules
+- `git_check`: verify clean git tree
+- `cc_check`: print cmake, gcc, ninja, ctest, valgrind, gcov, and clang-format versions
+- `devcontainer_check`: validate devcontainer config
 
 ## Workflows
 
-- `dev`: debug build and tests
-- `analyzer`: static analysis with fanalyzer
-- `asan`: address sanitizer with undefined behavior checks
-- `ubsan`: undefined behavior sanitizer
-- `tsan`: thread sanitizer
-- `lsan`: leak sanitizer
-- `memcheck`: valgrind memcheck build
-- `coverage`: coverage build with gcov report
-- `build-linux-amd64-v1`: release build for x86-64-v1
-- `build-linux-amd64-v2`: release build for x86-64-v2
-- `build-linux-amd64-v3`: release build for x86-64-v3
-- `build-linux-arm64-armv8-a`: release build for armv8-a
-- `build-linux-arm64-armv9-a`: release build for armv9-a
-- `build-native`: release build for native architecture
-- `dist-linux-amd64-v1`: release tarball for x86-64-v1
-- `dist-linux-amd64-v2`: release tarball for x86-64-v2
-- `dist-linux-amd64-v3`: release tarball for x86-64-v3
-- `dist-linux-arm64-armv8-a`: release tarball for armv8-a
-- `dist-linux-arm64-armv9-a`: release tarball for armv9-a
-- `dist-native`: release tarball for native architecture
+- `dev`: debug cmake build and ctest run
+- `fanalyzer`: fanalyzer cmake build and ctest run
+- `asan`: address sanitizer ctest run with undefined behavior checks
+- `ubsan`: undefined behavior sanitizer ctest run
+- `tsan`: thread sanitizer ctest run
+- `lsan`: leak sanitizer ctest run
+- `valgrind`: valgrind memcheck on ctest
+- `coverage`: coverage cmake build, ctest run, and gcov report
+- `build-linux-amd64-v1`: cmake release build for x86-64-v1
+- `build-linux-amd64-v2`: cmake release build for x86-64-v2
+- `build-linux-amd64-v3`: cmake release build for x86-64-v3
+- `build-linux-arm64-armv8-a`: cmake release build for armv8-a
+- `build-linux-arm64-armv9-a`: cmake release build for armv9-a
+- `build-native`: cmake release build for native architecture
+- `dist-linux-amd64-v1`: cpack tarball for x86-64-v1
+- `dist-linux-amd64-v2`: cpack tarball for x86-64-v2
+- `dist-linux-amd64-v3`: cpack tarball for x86-64-v3
+- `dist-linux-arm64-armv8-a`: cpack tarball for armv8-a
+- `dist-linux-arm64-armv9-a`: cpack tarball for armv9-a
+- `dist-native`: cpack tarball for native architecture
+
+## Quality
+
+Write clear code and add unit tests for every new behavior. Follow EditorConfig and Clang-Format. Build with `-Wall -Wextra -Wpedantic -pedantic-errors` as errors, use `c_std_23` with extensions off, keep functions small and McCabe-clean, and handle all errors with deterministic cleanup. Mirror each `<XXX>.c` / `<XXX>.h` with `tests/test_<XXX>.c`.
+
+Before you finish, run `make fix`, then run `make check`. Both commands must pass with no warnings, no test failures, no leaks, and no audit findings. If anything fails, fix the code or the tests and run both commands again. Never leave the repository with a red `make check`.
 
 ## ISO/IEC 9899:2024
 

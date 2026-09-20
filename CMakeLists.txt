@@ -27,13 +27,7 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
     message(FATAL_ERROR "GNU/Linux is required")
 endif()
 
-if(CMAKE_CROSSCOMPILING
-    AND NOT (
-        CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux"
-        AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|aarch64)$"
-        AND CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "^(x86_64|aarch64)$"
-    )
-)
+if(CMAKE_CROSSCOMPILING AND NOT (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|aarch64)$" AND CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "^(x86_64|aarch64)$"))
     message(FATAL_ERROR "Only native builds and GNU/Linux x86_64<->aarch64 cross-builds are supported")
 endif()
 
@@ -44,9 +38,11 @@ endif()
 include(GNUInstallDirs)
 
 set(MEMORYCHECK_COMMAND_OPTIONS "--leak-check=full --track-origins=yes")
+
 include(CTest)
 
 add_library(template_iso_c_warnings INTERFACE)
+
 target_compile_options(
     template_iso_c_warnings
     INTERFACE
@@ -55,7 +51,12 @@ target_compile_options(
         -Wpedantic
         -pedantic-errors
 )
-target_compile_definitions(template_iso_c_warnings INTERFACE _GNU_SOURCE)
+
+target_compile_definitions(
+    template_iso_c_warnings
+    INTERFACE
+        _GNU_SOURCE
+)
 
 add_subdirectory(src)
 
@@ -63,7 +64,10 @@ if(BUILD_TESTING)
     add_subdirectory(tests)
 endif()
 
-install(FILES LICENSE DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/doc/template-iso-c")
+install(
+    FILES LICENSE
+    DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/doc/template-iso-c"
+)
 
 set(CPACK_PACKAGE_NAME "template-iso-c")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${PROJECT_DESCRIPTION}")

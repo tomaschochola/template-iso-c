@@ -69,7 +69,7 @@
             "inherits": "debug-base"
         },
         {
-            "name": "analyzer",
+            "name": "fanalyzer",
             "inherits": "debug-base",
             "cacheVariables": {
                 "CMAKE_C_FLAGS_DEBUG": "-O0 -g -fno-omit-frame-pointer -fanalyzer -fanalyzer-transitivity -fanalyzer-call-summaries -Wanalyzer-too-complex -Wanalyzer-symbol-too-complex -Wno-error=analyzer-too-complex -Wno-error=analyzer-symbol-too-complex --param analyzer-bb-explosion-factor=20 --param analyzer-max-enodes-per-program-point=32 --param analyzer-max-constraints=80 --param analyzer-max-infeasible-edges=40 --param analyzer-max-recursion-depth=8 --param analyzer-max-svalue-depth=72"
@@ -108,7 +108,7 @@
             }
         },
         {
-            "name": "memcheck",
+            "name": "valgrind",
             "inherits": "debug-base",
             "cacheVariables": {
                 "CMAKE_C_FLAGS_DEBUG": "-O1 -g -fno-omit-frame-pointer"
@@ -186,8 +186,8 @@
             "configurePreset": "dev"
         },
         {
-            "name": "analyzer",
-            "configurePreset": "analyzer"
+            "name": "fanalyzer",
+            "configurePreset": "fanalyzer"
         },
         {
             "name": "asan",
@@ -206,8 +206,8 @@
             "configurePreset": "lsan"
         },
         {
-            "name": "memcheck",
-            "configurePreset": "memcheck"
+            "name": "valgrind",
+            "configurePreset": "valgrind"
         },
         {
             "name": "coverage",
@@ -257,9 +257,9 @@
             "configurePreset": "dev"
         },
         {
-            "name": "analyzer",
+            "name": "fanalyzer",
             "inherits": "test-base",
-            "configurePreset": "analyzer"
+            "configurePreset": "fanalyzer"
         },
         {
             "name": "asan",
@@ -407,19 +407,19 @@
             ]
         },
         {
-            "name": "analyzer",
+            "name": "fanalyzer",
             "steps": [
                 {
                     "type": "configure",
-                    "name": "analyzer"
+                    "name": "fanalyzer"
                 },
                 {
                     "type": "build",
-                    "name": "analyzer"
+                    "name": "fanalyzer"
                 },
                 {
                     "type": "test",
-                    "name": "analyzer"
+                    "name": "fanalyzer"
                 }
             ]
         },
@@ -492,15 +492,15 @@
             ]
         },
         {
-            "name": "memcheck",
+            "name": "valgrind",
             "steps": [
                 {
                     "type": "configure",
-                    "name": "memcheck"
+                    "name": "valgrind"
                 },
                 {
                     "type": "build",
-                    "name": "memcheck"
+                    "name": "valgrind"
                 }
             ]
         },

@@ -1,0 +1,14 @@
+---
+BasedOnStyle: LLVM
+Standard: Latest
+ColumnLimit: 200
+IndentWidth: 4
+ContinuationIndentWidth: 4
+BreakBeforeBraces: Linux
+AllowShortFunctionsOnASingleLine: None
+MaxEmptyLinesToKeep: 1
+SortIncludes: true
+InsertNewlineAtEOF: true
+LineEnding: LF
+UseTab: Never
+...
