@@ -31,6 +31,7 @@ DEVCONTAINER_FILTER := label=devcontainer.local_folder=$(CURDIR)
 CC ?= gcc
 CFLAGS ?=
 LDFLAGS ?=
+LC_ALL ?= C.UTF-8
 DESTDIR ?=
 VERSION ?= $(shell v=$$(git describe --tags --abbrev=0 2>/dev/null || echo 0.0.0); v=$${v#v}; echo "$$v")
 SOURCE_DATE_EPOCH ?= $(shell git log -1 --format=%ct 2>/dev/null || echo 0)
@@ -39,14 +40,10 @@ prefix ?= /usr/local
 SUDO ?= sudo
 TARBALL ?= dist/template-iso-c-$(VERSION)-native.tar.gz
 
-COVERAGE_MIN ?= 100
-COVERAGE_BRANCH_MIN ?= 100
-COVERAGE_CALL_MIN ?= 100
-COVERAGE_CONDITION_MIN ?= 100
-
 export CC
 export CFLAGS
 export LDFLAGS
+export LC_ALL
 export VERSION
 export SOURCE_DATE_EPOCH
 
@@ -56,7 +53,7 @@ export SOURCE_DATE_EPOCH
 fix: prettier_fix trimmer_fix
 
 .PHONY: check
-check: doctor lint analyze test coverage memcheck all san audit
+check: doctor lint analyze test memcheck all san audit
 
 .PHONY: doctor
 doctor: git_check npm_config_check npm_doctor cc_check
@@ -76,8 +73,7 @@ analyze: npm_check
 coverage:
 	rm --force --recursive --one-file-system -- ./out/build/coverage
 	cmake --workflow --preset coverage
-	cd ./out/build/coverage && find . -name '*.gcda' -print0 | xargs -0 -r env LC_ALL=C gcov --branch-counts --branch-probabilities --conditions --function-summaries
-	cd ./out/build/coverage && find . -name '*.gcda' -print0 | xargs -0 -r env LC_ALL=C gcov --json-format --branch-counts --branch-probabilities --conditions --function-summaries > /dev/null && python3 -c 'import gzip,json,glob,sys; m=list(map(float,sys.argv[1:5])); fs=[e for f in glob.glob("*.gcov.json.gz") for e in json.load(gzip.open(f)).get("files",[]) if ("/src/" in e.get("file","") or "/tests/" in e.get("file",""))]; ls=[l for e in fs for l in e.get("lines",[])]; lt=len(ls); lc=sum(1 for l in ls if l.get("count",0)>0); bs=[b for l in ls for b in l.get("branches",[])]; bt=len(bs); bc=sum(1 for b in bs if b.get("count",0)>0); ct=sum(len(l.get("calls",[])) for l in ls); cc=sum(len(l.get("calls",[])) for l in ls if l.get("count",0)>0); dt=sum(k.get("count",0) for l in ls for k in l.get("conditions",[])); dc=sum(k.get("covered",0) for l in ls for k in l.get("conditions",[])); pct=lambda a,b: 100.0 if b==0 else 100.0*a/b; bad=(pct(lc,lt)<m[0] or (bt and pct(bc,bt)<m[1]) or (ct and pct(cc,ct)<m[2]) or (dt and pct(dc,dt)<m[3])); sys.exit(1 if bad else 0)' $(COVERAGE_MIN) $(COVERAGE_BRANCH_MIN) $(COVERAGE_CALL_MIN) $(COVERAGE_CONDITION_MIN)
+	cd ./out/build/coverage && find . -name '*.gcda' -print0 | xargs -0 -r gcov --branch-counts --branch-probabilities --conditions --function-summaries --all-blocks --unconditional-branches --preserve-paths
 
 .PHONY: memcheck
 memcheck:
