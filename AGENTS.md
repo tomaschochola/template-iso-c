@@ -118,6 +118,8 @@ UseTab: Never
 
 ## Makefile
 
+Run all commands through make as the command runner and orchestration tool.
+
 - `fix`: `prettier_fix` `clang_format_fix` `trimmer_fix`
 - `check`: `doctor` `lint` `fanalyzer` `test` `valgrind` `mccabe` `all` `sanitize` `audit`
 - `doctor`: `git_check` `npm_config_check` `npm_doctor` `npm_check` `cc_check`
