@@ -30,10 +30,10 @@ function(template_iso_c_add_unit_test test target)
     target_link_libraries(${target} PRIVATE template_iso_c_core template_iso_c_test_support template_iso_c_warnings)
 
     add_test(NAME ${test} COMMAND ${target})
-    set_tests_properties(${test} PROPERTIES TIMEOUT 600 LABELS unit WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+    set_tests_properties(${test} PROPERTIES TIMEOUT 5 LABELS unit WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 endfunction()
 
 template_iso_c_add_unit_test(unit.todo template_iso_c_tests test_todo.c)
 
 add_test(NAME integration.cli COMMAND template_iso_c)
-set_tests_properties(integration.cli PROPERTIES TIMEOUT 600 LABELS integration WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set_tests_properties(integration.cli PROPERTIES TIMEOUT 5 LABELS integration WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})

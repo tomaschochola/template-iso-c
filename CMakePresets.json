@@ -248,8 +248,7 @@
             },
             "execution": {
                 "noTestsAction": "error",
-                "stopOnFailure": true,
-                "timeout": 30
+                "stopOnFailure": true
             }
         },
         {
@@ -260,10 +259,7 @@
         {
             "name": "analyzer",
             "inherits": "test-base",
-            "configurePreset": "analyzer",
-            "execution": {
-                "timeout": 600
-            }
+            "configurePreset": "analyzer"
         },
         {
             "name": "asan",

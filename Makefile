@@ -78,7 +78,7 @@ coverage:
 .PHONY: memcheck
 memcheck:
 	cmake --workflow --preset memcheck
-	ctest --test-dir ./out/build/memcheck --output-on-failure -T MemCheck
+	ctest --test-dir ./out/build/memcheck --output-on-failure --stop-on-failure --no-tests=error -T MemCheck
 
 .PHONY: audit
 audit: npm_audit
