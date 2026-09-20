@@ -1,17 +1,39 @@
-add_executable(template_iso_c_tests)
-target_sources(template_iso_c_tests PRIVATE test_todo.c ${PROJECT_SOURCE_DIR}/src/todo.c)
+add_library(template_iso_c_test_support STATIC)
+target_sources(template_iso_c_test_support
+    PRIVATE
+        test_support.c
+    PUBLIC
+        FILE_SET HEADERS
+        BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}
+        FILES test_support.h
+)
+target_compile_features(template_iso_c_test_support PUBLIC c_std_23)
 
-target_compile_features(template_iso_c_tests PRIVATE c_std_23)
-
-target_include_directories(template_iso_c_tests PRIVATE ${PROJECT_SOURCE_DIR}/src)
-
-set_target_properties(template_iso_c_tests PROPERTIES
+set_target_properties(template_iso_c_test_support PROPERTIES
     C_EXTENSIONS OFF
     C_STANDARD_REQUIRED ON
+    POSITION_INDEPENDENT_CODE ON
 )
 
-target_link_libraries(template_iso_c_tests PRIVATE template_iso_c_warnings)
+target_link_libraries(template_iso_c_test_support PRIVATE template_iso_c_warnings)
 
-add_test(NAME unit.todo COMMAND template_iso_c_tests)
+function(template_iso_c_add_unit_test test target)
+    add_executable(${target} ${ARGN})
+    target_compile_features(${target} PRIVATE c_std_23)
+
+    set_target_properties(${target} PROPERTIES
+        C_EXTENSIONS OFF
+        C_STANDARD_REQUIRED ON
+        POSITION_INDEPENDENT_CODE ON
+    )
+
+    target_link_libraries(${target} PRIVATE template_iso_c_core template_iso_c_test_support template_iso_c_warnings)
+
+    add_test(NAME ${test} COMMAND ${target})
+    set_tests_properties(${test} PROPERTIES TIMEOUT 600 LABELS unit WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+endfunction()
+
+template_iso_c_add_unit_test(unit.todo template_iso_c_tests test_todo.c)
+
 add_test(NAME integration.cli COMMAND template_iso_c)
-set_tests_properties(unit.todo integration.cli PROPERTIES TIMEOUT 600)
+set_tests_properties(integration.cli PROPERTIES TIMEOUT 600 LABELS integration WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
