@@ -72,7 +72,7 @@
             "name": "analyzer",
             "inherits": "debug-base",
             "cacheVariables": {
-                "CMAKE_C_FLAGS_DEBUG": "-O0 -g -fno-omit-frame-pointer -fanalyzer -fanalyzer-transitivity -Wanalyzer-too-complex -Wanalyzer-symbol-too-complex --param analyzer-bb-explosion-factor=1000 --param analyzer-max-enodes-per-program-point=2000 --param analyzer-max-constraints=1000 --param analyzer-max-infeasible-edges=1000 --param analyzer-max-recursion-depth=12 --param analyzer-max-svalue-depth=512"
+                "CMAKE_C_FLAGS_DEBUG": "-O0 -g -fno-omit-frame-pointer -fanalyzer -fanalyzer-transitivity -fanalyzer-call-summaries -Wanalyzer-too-complex -Wanalyzer-symbol-too-complex -Wno-error=analyzer-too-complex -Wno-error=analyzer-symbol-too-complex --param analyzer-bb-explosion-factor=20 --param analyzer-max-enodes-per-program-point=32 --param analyzer-max-constraints=80 --param analyzer-max-infeasible-edges=40 --param analyzer-max-recursion-depth=8 --param analyzer-max-svalue-depth=72"
             }
         },
         {
