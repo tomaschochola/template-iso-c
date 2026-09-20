@@ -116,6 +116,37 @@ UseTab: Never
 ...
 ```
 
+## Tree
+
+```text
+.
+├── AGENTS.md
+├── AUTHORS.md
+├── .clang-format
+├── CMakeLists.txt
+├── CMakePresets.json
+├── .devcontainer/
+│   ├── devcontainer.json
+│   ├── Dockerfile
+│   └── .dockerignore
+├── .editorconfig
+├── .gitattributes
+├── .gitignore
+├── LICENSE
+├── Makefile
+├── .npmrc
+├── package.json
+├── package-lock.json
+├── prettier.config.js
+├── .prettierignore
+├── src/
+│   ├── CMakeLists.txt
+│   └── ...
+└── tests/
+    ├── CMakeLists.txt
+    └── ...
+```
+
 ## Makefile
 
 Run all commands through make as the command runner and orchestration tool.
