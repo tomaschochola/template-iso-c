@@ -26,7 +26,7 @@ never:
 
 # Options
 
-DEVCONTAINER_FILTER := label=devcontainer.local_folder=$(CURDIR)
+DEVCONTAINER_COMPOSE := ./.devcontainer/docker-compose.yml
 
 CC ?= gcc
 CFLAGS ?=
@@ -38,8 +38,6 @@ SOURCE_DATE_EPOCH ?= $(shell git log -1 --format=%ct 2>/dev/null || echo 0)
 PROGRAM := template-iso-c
 prefix ?= /usr/local
 SUDO ?= sudo
-TARBALL ?= dist/template-iso-c-$(VERSION)-native.tar.gz
-MCCABE_MAX ?= 10
 
 export CC
 export CFLAGS
@@ -54,7 +52,7 @@ export SOURCE_DATE_EPOCH
 fix: prettier_fix clang_format_fix trimmer_fix
 
 .PHONY: check
-check: doctor lint fanalyzer test valgrind mccabe all sanitize audit
+check: doctor lint fanalyzer test coverage valgrind all sanitize audit
 
 .PHONY: doctor
 doctor: git_check npm_config_check npm_doctor npm_check cc_check
@@ -64,7 +62,11 @@ lint: prettier_check clang_format_check trimmer_check
 
 .PHONY: test
 test:
-	cmake --workflow --preset dev
+	cmake --workflow --preset debug
+
+.PHONY: debug
+debug:
+	cmake --workflow --preset debug
 
 .PHONY: fanalyzer
 fanalyzer:
@@ -74,19 +76,13 @@ fanalyzer:
 coverage:
 	rm --force --recursive --one-file-system -- ./out/build/coverage
 	cmake --workflow --preset coverage
-	cd ./out/build/coverage && find . -name '*.gcda' -print0 | xargs -0 -r gcov --branch-counts --branch-probabilities --conditions --function-summaries --all-blocks --unconditional-branches --preserve-paths
+	cd ./out/build/coverage && find ./src -name '*.gcno' -print0 | xargs -0 -r gcov --branch-counts --branch-probabilities --conditions --function-summaries --all-blocks --unconditional-branches --preserve-paths
+	cd ./out/build/coverage && find ./src -name '*.gcno' -print0 | xargs -0 -r gcov --json-format --stdout | python3 -c 'import json,pathlib,sys; root=pathlib.Path("../../../src").resolve(); files=[f for s in sys.stdin if s.startswith("{") for f in json.loads(s)["files"] if pathlib.Path(f["file"]).resolve().is_relative_to(root)]; lines=[l for f in files for l in f["lines"]]; functions=[f for file in files for f in file["functions"]]; sys.exit(not (lines and functions and all(l["count"]>0 for l in lines) and all(f["execution_count"]>0 for f in functions)))'
 
 .PHONY: valgrind
 valgrind:
 	cmake --workflow --preset valgrind
 	ctest --test-dir ./out/build/valgrind --output-on-failure --stop-on-failure --no-tests=error -T MemCheck
-
-.PHONY: mccabe
-mccabe:
-	rm --force --recursive --one-file-system -- ./out/build/coverage
-	cmake --workflow --preset coverage
-	test "$(MCCABE_MAX)" -ge 1
-	cd ./out/build/coverage && find . -name '*.gcda' -print0 | xargs -0 -r gcov --json-format --stdout --branch-probabilities --branch-counts --unconditional-branches | python3 -c $$'import sys,json\nfrom collections import defaultdict\nLIM=$(MCCABE_MAX)\nd=defaultdict(lambda: defaultdict(set))\nfor line in sys.stdin:\n line=line.strip()\n try:\n  doc=json.loads(line)\n except:\n  continue\n for f in doc.get("files",[]):\n  if f.get("file","").split("/")[-2]!="src":continue\n  for ln in f.get("lines",[]):\n   fn=ln.get("function_name")\n   if not fn:continue\n   for b in ln.get("branches",[]):\n    if b.get("throw"):continue\n    d[(f["file"],fn)][b["source_block_id"]].add(b["destination_block_id"])\nsys.exit(1 if any(1+sum(len(v)-1 for v in g.values() if len(v)>1)>LIM for g in d.values()) else 0)'
 
 .PHONY: audit
 audit: npm_audit
@@ -101,23 +97,63 @@ sanitize:
 	cmake --workflow --preset tsan
 	cmake --workflow --preset lsan
 
-.PHONY: all
-all:
-	cmake --workflow --preset build-linux-amd64-v1
-	cmake --workflow --preset build-linux-amd64-v2
-	cmake --workflow --preset build-linux-amd64-v3
-	cmake --workflow --preset build-linux-arm64-armv8-a
-	cmake --workflow --preset build-linux-arm64-armv9-a
+.PHONY: native
+native:
 	cmake --workflow --preset build-native
 
-.PHONY: dist
-dist:
-	cmake --workflow --preset dist-linux-amd64-v1
-	cmake --workflow --preset dist-linux-amd64-v2
-	cmake --workflow --preset dist-linux-amd64-v3
-	cmake --workflow --preset dist-linux-arm64-armv8-a
-	cmake --workflow --preset dist-linux-arm64-armv9-a
+.PHONY: linux_amd64_v1
+linux_amd64_v1:
+	cmake --workflow --preset build-linux-amd64-v1
+
+.PHONY: linux_amd64_v2
+linux_amd64_v2:
+	cmake --workflow --preset build-linux-amd64-v2
+
+.PHONY: linux_amd64_v3
+linux_amd64_v3:
+	cmake --workflow --preset build-linux-amd64-v3
+
+.PHONY: linux_arm64_armv8_a
+linux_arm64_armv8_a:
+	cmake --workflow --preset build-linux-arm64-armv8-a
+
+.PHONY: linux_arm64_armv9_a
+linux_arm64_armv9_a:
+	cmake --workflow --preset build-linux-arm64-armv9-a
+
+.PHONY: all
+all: debug native
+
+.PHONY: dist_native
+dist_native:
 	cmake --workflow --preset dist-native
+
+.PHONY: dist_debug
+dist_debug:
+	cmake --workflow --preset dist-debug
+
+.PHONY: dist_linux_amd64_v1
+dist_linux_amd64_v1:
+	cmake --workflow --preset dist-linux-amd64-v1
+
+.PHONY: dist_linux_amd64_v2
+dist_linux_amd64_v2:
+	cmake --workflow --preset dist-linux-amd64-v2
+
+.PHONY: dist_linux_amd64_v3
+dist_linux_amd64_v3:
+	cmake --workflow --preset dist-linux-amd64-v3
+
+.PHONY: dist_linux_arm64_armv8_a
+dist_linux_arm64_armv8_a:
+	cmake --workflow --preset dist-linux-arm64-armv8-a
+
+.PHONY: dist_linux_arm64_armv9_a
+dist_linux_arm64_armv9_a:
+	cmake --workflow --preset dist-linux-arm64-armv9-a
+
+.PHONY: dist
+dist: dist_native dist_debug
 
 .PHONY: install
 install:
@@ -135,13 +171,6 @@ installcheck:
 	test -x "$(DESTDIR)$(prefix)/bin/$(PROGRAM)"
 	test -f "$(DESTDIR)$(prefix)/share/doc/template-iso-c/LICENSE"
 
-.PHONY: dist-install
-dist-install:
-	cmake --workflow --preset dist-native
-	cd $(dir $(TARBALL)) && sha256sum --check $(notdir $(TARBALL)).sha256
-	$(SUDO) install --directory -- "$(DESTDIR)$(prefix)"
-	$(SUDO) tar --extract --gzip --file "$(TARBALL)" --directory "$(DESTDIR)$(prefix)" --strip-components=1 --no-same-owner
-
 .PHONY: postcreate
 postcreate: deps_install
 
@@ -155,11 +184,11 @@ shell: up
 
 .PHONY: stop
 stop:
-	docker container ls --quiet --filter "$(DEVCONTAINER_FILTER)" | while IFS= read -r container; do docker container stop "$$container"; done
+	docker compose -f "$(DEVCONTAINER_COMPOSE)" stop
 
 .PHONY: down
-down: stop
-	docker container ls --all --quiet --filter "$(DEVCONTAINER_FILTER)" | while IFS= read -r container; do docker container rm "$$container"; done
+down:
+	docker compose -f "$(DEVCONTAINER_COMPOSE)" down --remove-orphans
 
 .PHONY: rebuild
 rebuild: devcontainer_check down
@@ -261,6 +290,7 @@ cc_check:
 .PHONY: devcontainer_check
 devcontainer_check:
 	devcontainer read-configuration --workspace-folder . >/dev/null
+	docker compose -f "$(DEVCONTAINER_COMPOSE)" config --quiet
 	docker build --check --file ./.devcontainer/Dockerfile ./.devcontainer
 
 # Private targets

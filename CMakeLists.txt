@@ -27,8 +27,8 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
     message(FATAL_ERROR "GNU/Linux is required")
 endif()
 
-if(CMAKE_CROSSCOMPILING AND NOT (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|aarch64)$" AND CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "^(x86_64|aarch64)$"))
-    message(FATAL_ERROR "Only native builds and GNU/Linux x86_64<->aarch64 cross-builds are supported")
+if(CMAKE_CROSSCOMPILING)
+    message(FATAL_ERROR "Cross-compiling is not supported, build natively")
 endif()
 
 if(NOT CMAKE_C_COMPILER_ID STREQUAL "GNU")

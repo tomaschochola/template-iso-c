@@ -58,14 +58,14 @@
             "hidden": true,
             "inherits": "base",
             "cacheVariables": {
-                "BUILD_TESTING": true,
+                "BUILD_TESTING": false,
                 "CMAKE_BUILD_TYPE": "Release",
                 "CMAKE_EXE_LINKER_FLAGS_RELEASE": "-s",
                 "CMAKE_INTERPROCEDURAL_OPTIMIZATION": true
             }
         },
         {
-            "name": "dev",
+            "name": "debug",
             "inherits": "debug-base"
         },
         {
@@ -182,8 +182,8 @@
     ],
     "buildPresets": [
         {
-            "name": "dev",
-            "configurePreset": "dev"
+            "name": "debug",
+            "configurePreset": "debug"
         },
         {
             "name": "fanalyzer",
@@ -252,9 +252,9 @@
             }
         },
         {
-            "name": "dev",
+            "name": "debug",
             "inherits": "test-base",
-            "configurePreset": "dev"
+            "configurePreset": "debug"
         },
         {
             "name": "fanalyzer",
@@ -297,36 +297,6 @@
             "name": "coverage",
             "inherits": "test-base",
             "configurePreset": "coverage"
-        },
-        {
-            "name": "linux-amd64-v1",
-            "inherits": "test-base",
-            "configurePreset": "linux-amd64-v1"
-        },
-        {
-            "name": "linux-amd64-v2",
-            "inherits": "test-base",
-            "configurePreset": "linux-amd64-v2"
-        },
-        {
-            "name": "linux-amd64-v3",
-            "inherits": "test-base",
-            "configurePreset": "linux-amd64-v3"
-        },
-        {
-            "name": "linux-arm64-armv8-a",
-            "inherits": "test-base",
-            "configurePreset": "linux-arm64-armv8-a"
-        },
-        {
-            "name": "linux-arm64-armv9-a",
-            "inherits": "test-base",
-            "configurePreset": "linux-arm64-armv9-a"
-        },
-        {
-            "name": "native",
-            "inherits": "test-base",
-            "configurePreset": "native"
         }
     ],
     "packagePresets": [
@@ -386,23 +356,31 @@
             "variables": {
                 "CPACK_PACKAGE_FILE_NAME": "template-iso-c-$env{VERSION}-native"
             }
+        },
+        {
+            "name": "package-debug",
+            "inherits": "package-base",
+            "configurePreset": "debug",
+            "variables": {
+                "CPACK_PACKAGE_FILE_NAME": "template-iso-c-$env{VERSION}-debug"
+            }
         }
     ],
     "workflowPresets": [
         {
-            "name": "dev",
+            "name": "debug",
             "steps": [
                 {
                     "type": "configure",
-                    "name": "dev"
+                    "name": "debug"
                 },
                 {
                     "type": "build",
-                    "name": "dev"
+                    "name": "debug"
                 },
                 {
                     "type": "test",
-                    "name": "dev"
+                    "name": "debug"
                 }
             ]
         },
@@ -596,10 +574,6 @@
                 {
                     "type": "build",
                     "name": "native"
-                },
-                {
-                    "type": "test",
-                    "name": "native"
                 }
             ]
         },
@@ -700,12 +674,29 @@
                     "name": "native"
                 },
                 {
+                    "type": "package",
+                    "name": "package-native"
+                }
+            ]
+        },
+        {
+            "name": "dist-debug",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "debug"
+                },
+                {
+                    "type": "build",
+                    "name": "debug"
+                },
+                {
                     "type": "test",
-                    "name": "native"
+                    "name": "debug"
                 },
                 {
                     "type": "package",
-                    "name": "package-native"
+                    "name": "package-debug"
                 }
             ]
         }

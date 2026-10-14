@@ -1,10 +1,8 @@
 # AGENTS.md
 
-Do serious software engineering and serious computer science in ISO/IEC 9899:2024 C (`-std=c23`) for 64-bit little-endian GNU/Linux (LP64) on Linux 7.x with glibc. Target `x86_64-pc-linux-gnu` across x86-64-v1, x86-64-v2, and x86-64-v3 and `aarch64-linux-gnu` across armv8-a and armv9-a. Always define `_GNU_SOURCE` to enable the POSIX.1-2024 surface, including `_POSIX_C_SOURCE=202405L` and `_XOPEN_SOURCE=800`.
+Do serious software engineering and serious computer science in ISO/IEC 9899:2024 C (`-std=c23`) for native 64-bit little-endian GNU/Linux (LP64) on Linux 7.x with glibc 2.43. Target `x86_64-pc-linux-gnu` across x86-64-v1, x86-64-v2, and x86-64-v3 and `aarch64-linux-gnu` across armv8-a and armv9-a. Always define `_GNU_SOURCE=1` to use public glibc APIs, including GNU extensions, Linux-specific interfaces, POSIX.1-2024 (`_POSIX_C_SOURCE=202405L`) and XSI (`_XOPEN_SOURCE=800`). Use Linux UAPI where needed; keep ISO C23 syntax, not the GNU C dialect.
 
 Stay GNU/Linux native. Do not target Windows, macOS, or any other operating system. Do not target architectures, ISAs, or triples outside the build matrix below. Do not add backward compatibility, legacy support, or broad portability shims.
-
-Select APIs in strict priority order: the highest-level native `_GNU_SOURCE` glibc interface first, then Linux 7.x facilities via glibc, then POSIX/XOPEN, then ISO C alone, and custom code only as a last resort. Treat glibc plus POSIX plus XOPEN plus Linux as one standard library and use the maximum it offers. Within the matrix, always choose the newest stable, most secure, most performant, correct, memory-safe, UB-free, thread-safe, resource-safe, deterministic, and maintainable variant.
 
 ## Target
 
@@ -15,7 +13,7 @@ Select APIs in strict priority order: the highest-level native `_GNU_SOURCE` gli
 - Bits: 64-bit, LP64, little-endian
 - ISA: x86-64-v1, x86-64-v2, x86-64-v3, armv8-a, armv9-a
 - Libc: glibc 2.43
-- Interface: POSIX.1-2024
+- Interfaces: glibc public APIs, GNU extensions, Linux UAPI, POSIX.1-2024, XSI, ISO C23
 
 ## Language
 
@@ -24,7 +22,7 @@ Select APIs in strict priority order: the highest-level native `_GNU_SOURCE` gli
 
 ## Features
 
-`_GNU_SOURCE=1` expanding into:
+glibc 2.43 feature-test macros enabled by `_GNU_SOURCE=1`:
 
 - `_ISOC95_SOURCE=1`
 - `_ISOC99_SOURCE=1`
@@ -35,6 +33,7 @@ Select APIs in strict priority order: the highest-level native `_GNU_SOURCE` gli
 - `_POSIX_C_SOURCE=202405L`
 - `_XOPEN_SOURCE=800`
 - `_XOPEN_SOURCE_EXTENDED=1`
+- `_LARGEFILE_SOURCE=1`
 - `_LARGEFILE64_SOURCE=1`
 - `_DEFAULT_SOURCE=1`
 - `_ATFILE_SOURCE=1`
@@ -54,6 +53,18 @@ Select APIs in strict priority order: the highest-level native `_GNU_SOURCE` gli
 - clang-format 22
 - node 24
 - npm 12
+
+## Libs
+
+- libcurl: `libcurl4-openssl-dev`
+- json-c: `libjson-c-dev`
+- SQLite: `libsqlite3-dev`, `sqlite3`
+
+## API preference
+
+For suitable alternatives: GNU extensions > Linux-specific interfaces > POSIX.1-2024 base interfaces > XSI extensions > ISO C23 library interfaces > vetted third-party libraries > direct Linux system calls > custom implementations (last resort).
+
+Prefer public glibc wrappers to direct syscalls; do not reimplement facilities provided by the installed libraries.
 
 ## EditorConfig
 
@@ -127,6 +138,7 @@ UseTab: Never
 ├── CMakePresets.json
 ├── .devcontainer/
 │   ├── devcontainer.json
+│   ├── docker-compose.yml
 │   ├── Dockerfile
 │   └── .dockerignore
 ├── .editorconfig
@@ -152,28 +164,40 @@ UseTab: Never
 Run all commands through make as the command runner and orchestration tool.
 
 - `fix`: `prettier_fix` `clang_format_fix` `trimmer_fix`
-- `check`: `doctor` `lint` `fanalyzer` `test` `valgrind` `mccabe` `all` `sanitize` `audit`
+- `check`: `doctor` `lint` `fanalyzer` `test` `coverage` `valgrind` `all` `sanitize` `audit`
 - `doctor`: `git_check` `npm_config_check` `npm_doctor` `npm_check` `cc_check`
 - `lint`: `prettier_check` `clang_format_check` `trimmer_check`
 - `test`: debug cmake build and ctest run
 - `fanalyzer`: fanalyzer cmake build and ctest run
-- `coverage`: coverage cmake build, ctest run, and gcov report
-- `mccabe`: McCabe gate on gcov JSON
-- `valgrind`: valgrind memcheck on ctest
+- `coverage`: coverage cmake build, ctest run, src gcov report and coverage gate
+- `valgrind`: valgrind memcheck on ctest, defects only warn
 - `sanitize`: asan plus ubsan plus tsan plus lsan ctest runs
-- `all`: all matrix cmake release builds
-- `dist`: all matrix cpack tarballs
+- `native`: native release build
+- `debug`: debug cmake build and ctest run
+- `linux_amd64_v1`: cmake release build for x86-64-v1
+- `linux_amd64_v2`: cmake release build for x86-64-v2
+- `linux_amd64_v3`: cmake release build for x86-64-v3
+- `linux_arm64_armv8_a`: cmake release build for armv8-a
+- `linux_arm64_armv9_a`: cmake release build for armv9-a
+- `all`: `debug` `native`
+- `dist_native`: native cpack tarball
+- `dist_debug`: debug cpack tarball
+- `dist_linux_amd64_v1`: cpack tarball for x86-64-v1
+- `dist_linux_amd64_v2`: cpack tarball for x86-64-v2
+- `dist_linux_amd64_v3`: cpack tarball for x86-64-v3
+- `dist_linux_arm64_armv8_a`: cpack tarball for armv8-a
+- `dist_linux_arm64_armv9_a`: cpack tarball for armv9-a
+- `dist`: `dist_native` `dist_debug`
 - `audit`: `npm_audit`
 - `install`: cmake install of native release
 - `uninstall`: remove installed binary and documentation
 - `installcheck`: verify installed binary and license
-- `dist-install`: verify tarball checksum and install from tarball
 - `update`: `npm_config_check` `npm_update`
 - `postcreate`: `deps_install`
 - `up`: `devcontainer_check` start devcontainer
 - `shell`: `up` shell in devcontainer
 - `stop`: stop devcontainer
-- `down`: `stop` remove devcontainer
+- `down`: remove Compose services and networks
 - `clean`: remove out and dist
 - `distclean`: `clean` `deps_clean`
 - `rebuild`: `devcontainer_check` `down` rebuild devcontainer
@@ -198,14 +222,14 @@ Run all commands through make as the command runner and orchestration tool.
 
 ## Workflows
 
-- `dev`: debug cmake build and ctest run
+- `debug`: debug cmake build and ctest run
 - `fanalyzer`: fanalyzer cmake build and ctest run
 - `asan`: address sanitizer ctest run with undefined behavior checks
 - `ubsan`: undefined behavior sanitizer ctest run
 - `tsan`: thread sanitizer ctest run
 - `lsan`: leak sanitizer ctest run
-- `valgrind`: valgrind memcheck on ctest
-- `coverage`: coverage cmake build, ctest run, and gcov report
+- `valgrind`: valgrind cmake build
+- `coverage`: coverage cmake build and ctest run
 - `build-linux-amd64-v1`: cmake release build for x86-64-v1
 - `build-linux-amd64-v2`: cmake release build for x86-64-v2
 - `build-linux-amd64-v3`: cmake release build for x86-64-v3
@@ -218,10 +242,15 @@ Run all commands through make as the command runner and orchestration tool.
 - `dist-linux-arm64-armv8-a`: cpack tarball for armv8-a
 - `dist-linux-arm64-armv9-a`: cpack tarball for armv9-a
 - `dist-native`: cpack tarball for native architecture
+- `dist-debug`: debug cmake build, ctest run and cpack tarball
 
-## Quality
+## Quality gate
 
-Write clear code and add unit tests for every new behavior. Follow EditorConfig and Clang-Format. Build with `-Wall -Wextra -Wpedantic -pedantic-errors` as errors, use `c_std_23` with extensions off, keep functions small and McCabe-clean, and handle all errors with deterministic cleanup. Mirror each `<XXX>.c` / `<XXX>.h` with `tests/test_<XXX>.c`.
+Mirror each `src/**/<XXX>.c` / `src/**/<XXX>.h` with `tests/**/test_<XXX>.c`.
+
+Require 100% line and function coverage under `src/`. Use test-only GNU ld `--wrap` for fault injection; leave production code unchanged.
+
+WireMock tests use `WIREMOCK_URL` and CTest `RESOURCE_LOCK wiremock`.
 
 Before you finish, run `make fix`, then run `make check`. Both commands must pass with no warnings, no test failures, no leaks, and no audit findings. If anything fails, fix the code or the tests and run both commands again. Never leave the repository with a red `make check`.
 
