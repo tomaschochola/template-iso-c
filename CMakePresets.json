@@ -1,5 +1,5 @@
 {
-    "$schema": "https://gitlab.kitware.com/cmake/cmake/-/raw/v4.4.3/Help/manual/presets/schema.json",
+    "$schema": "https://gitlab.kitware.com/cmake/cmake/-/raw/v4.4.4/Help/manual/presets/schema.json",
     "version": 12,
     "cmakeMinimumRequired": {
         "major": 4,
@@ -69,6 +69,10 @@
             "inherits": "debug-base"
         },
         {
+            "name": "release",
+            "inherits": "release-base"
+        },
+        {
             "name": "fanalyzer",
             "inherits": "debug-base",
             "cacheVariables": {
@@ -79,32 +83,28 @@
             "name": "asan",
             "inherits": "debug-base",
             "cacheVariables": {
-                "CMAKE_C_FLAGS_DEBUG": "-Og -g -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-ipa-icf -fsanitize=address,undefined,bounds-strict,pointer-compare,pointer-subtract,float-cast-overflow -fno-sanitize-recover=all",
-                "CMAKE_EXE_LINKER_FLAGS_DEBUG": "-fsanitize=address,undefined,bounds-strict,pointer-compare,pointer-subtract,float-cast-overflow -fno-sanitize-recover=all"
+                "CMAKE_C_FLAGS_DEBUG": "-Og -g -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-ipa-icf -fsanitize=address,undefined,bounds-strict,pointer-compare,pointer-subtract,float-cast-overflow -fno-sanitize-recover=all"
             }
         },
         {
             "name": "ubsan",
             "inherits": "debug-base",
             "cacheVariables": {
-                "CMAKE_C_FLAGS_DEBUG": "-Og -g -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-ipa-icf -fsanitize=undefined,bounds-strict,float-cast-overflow -fno-sanitize-recover=all",
-                "CMAKE_EXE_LINKER_FLAGS_DEBUG": "-fsanitize=undefined,bounds-strict,float-cast-overflow -fno-sanitize-recover=all"
+                "CMAKE_C_FLAGS_DEBUG": "-Og -g -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-ipa-icf -fsanitize=undefined,bounds-strict,float-cast-overflow -fno-sanitize-recover=all"
             }
         },
         {
             "name": "tsan",
             "inherits": "debug-base",
             "cacheVariables": {
-                "CMAKE_C_FLAGS_DEBUG": "-Og -g -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-ipa-icf -fsanitize=thread",
-                "CMAKE_EXE_LINKER_FLAGS_DEBUG": "-fsanitize=thread"
+                "CMAKE_C_FLAGS_DEBUG": "-Og -g -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-ipa-icf -fsanitize=thread"
             }
         },
         {
             "name": "lsan",
             "inherits": "debug-base",
             "cacheVariables": {
-                "CMAKE_C_FLAGS_DEBUG": "-Og -g -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-ipa-icf -fsanitize=leak",
-                "CMAKE_EXE_LINKER_FLAGS_DEBUG": "-fsanitize=leak"
+                "CMAKE_C_FLAGS_DEBUG": "-Og -g -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-ipa-icf -fsanitize=leak"
             }
         },
         {
@@ -118,17 +118,13 @@
             "name": "coverage",
             "inherits": "debug-base",
             "cacheVariables": {
-                "CMAKE_C_FLAGS_DEBUG": "-O0 -g --coverage -fcondition-coverage -fprofile-abs-path",
-                "CMAKE_EXE_LINKER_FLAGS_DEBUG": "--coverage"
+                "CMAKE_C_FLAGS_DEBUG": "-O0 -g --coverage -fcondition-coverage -fprofile-abs-path"
             }
         },
         {
             "name": "linux-amd64-v1",
             "inherits": "release-base",
             "cacheVariables": {
-                "CMAKE_SYSTEM_NAME": "Linux",
-                "CMAKE_SYSTEM_PROCESSOR": "x86_64",
-                "CMAKE_C_COMPILER": "x86_64-linux-gnu-gcc",
                 "CMAKE_C_FLAGS": "$env{CFLAGS} -march=x86-64"
             }
         },
@@ -136,9 +132,6 @@
             "name": "linux-amd64-v2",
             "inherits": "release-base",
             "cacheVariables": {
-                "CMAKE_SYSTEM_NAME": "Linux",
-                "CMAKE_SYSTEM_PROCESSOR": "x86_64",
-                "CMAKE_C_COMPILER": "x86_64-linux-gnu-gcc",
                 "CMAKE_C_FLAGS": "$env{CFLAGS} -march=x86-64-v2"
             }
         },
@@ -146,9 +139,6 @@
             "name": "linux-amd64-v3",
             "inherits": "release-base",
             "cacheVariables": {
-                "CMAKE_SYSTEM_NAME": "Linux",
-                "CMAKE_SYSTEM_PROCESSOR": "x86_64",
-                "CMAKE_C_COMPILER": "x86_64-linux-gnu-gcc",
                 "CMAKE_C_FLAGS": "$env{CFLAGS} -march=x86-64-v3"
             }
         },
@@ -156,9 +146,6 @@
             "name": "linux-arm64-armv8-a",
             "inherits": "release-base",
             "cacheVariables": {
-                "CMAKE_SYSTEM_NAME": "Linux",
-                "CMAKE_SYSTEM_PROCESSOR": "aarch64",
-                "CMAKE_C_COMPILER": "aarch64-linux-gnu-gcc",
                 "CMAKE_C_FLAGS": "$env{CFLAGS} -march=armv8-a"
             }
         },
@@ -166,9 +153,6 @@
             "name": "linux-arm64-armv9-a",
             "inherits": "release-base",
             "cacheVariables": {
-                "CMAKE_SYSTEM_NAME": "Linux",
-                "CMAKE_SYSTEM_PROCESSOR": "aarch64",
-                "CMAKE_C_COMPILER": "aarch64-linux-gnu-gcc",
                 "CMAKE_C_FLAGS": "$env{CFLAGS} -march=armv9-a"
             }
         },
@@ -184,6 +168,10 @@
         {
             "name": "debug",
             "configurePreset": "debug"
+        },
+        {
+            "name": "release",
+            "configurePreset": "release"
         },
         {
             "name": "fanalyzer",
@@ -303,11 +291,7 @@
         {
             "name": "package-base",
             "hidden": true,
-            "generators": ["TGZ"],
-            "packageDirectory": "${sourceDir}/dist",
-            "variables": {
-                "CPACK_PACKAGE_VERSION": "$env{VERSION}"
-            }
+            "packageDirectory": "${sourceDir}/dist"
         },
         {
             "name": "package-linux-amd64-v1",
@@ -364,11 +348,32 @@
             "variables": {
                 "CPACK_PACKAGE_FILE_NAME": "template-iso-c-$env{VERSION}-debug"
             }
+        },
+        {
+            "name": "package-release",
+            "inherits": "package-base",
+            "configurePreset": "release",
+            "variables": {
+                "CPACK_PACKAGE_FILE_NAME": "template-iso-c-$env{VERSION}-release"
+            }
         }
     ],
     "workflowPresets": [
         {
-            "name": "debug",
+            "name": "build-debug",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "debug"
+                },
+                {
+                    "type": "build",
+                    "name": "debug"
+                }
+            ]
+        },
+        {
+            "name": "test",
             "steps": [
                 {
                     "type": "configure",
@@ -578,6 +583,19 @@
             ]
         },
         {
+            "name": "build-release",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "release"
+                },
+                {
+                    "type": "build",
+                    "name": "release"
+                }
+            ]
+        },
+        {
             "name": "dist-linux-amd64-v1",
             "steps": [
                 {
@@ -691,12 +709,25 @@
                     "name": "debug"
                 },
                 {
-                    "type": "test",
-                    "name": "debug"
+                    "type": "package",
+                    "name": "package-debug"
+                }
+            ]
+        },
+        {
+            "name": "dist-release",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "release"
+                },
+                {
+                    "type": "build",
+                    "name": "release"
                 },
                 {
                     "type": "package",
-                    "name": "package-debug"
+                    "name": "package-release"
                 }
             ]
         }

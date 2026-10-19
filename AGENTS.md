@@ -1,8 +1,6 @@
 # AGENTS.md
 
-Do serious software engineering and serious computer science in ISO/IEC 9899:2024 C (`-std=c23`) for native 64-bit little-endian GNU/Linux (LP64) on Linux 7.x with glibc 2.43. Target `x86_64-pc-linux-gnu` across x86-64-v1, x86-64-v2, and x86-64-v3 and `aarch64-linux-gnu` across armv8-a and armv9-a. Always define `_GNU_SOURCE=1` to use public glibc APIs, including GNU extensions, Linux-specific interfaces, POSIX.1-2024 (`_POSIX_C_SOURCE=202405L`) and XSI (`_XOPEN_SOURCE=800`). Use Linux UAPI where needed; keep ISO C23 syntax, not the GNU C dialect.
-
-Stay GNU/Linux native. Do not target Windows, macOS, or any other operating system. Do not target architectures, ISAs, or triples outside the build matrix below. Do not add backward compatibility, legacy support, or broad portability shims.
+Do serious software engineering and serious computer science in ISO/IEC 9899:2024 C (`-std=c23`) for native 64-bit little-endian GNU/Linux (LP64) on Linux 7.x with glibc 2.43. Target `x86_64-pc-linux-gnu` across x86-64-v1, x86-64-v2, and x86-64-v3 and `aarch64-linux-gnu` across armv8-a and armv9-a. Always define `_GNU_SOURCE=1` to use public glibc APIs, including GNU extensions, Linux-specific interfaces, POSIX.1-2024 (`_POSIX_C_SOURCE=202405L`) and XSI (`_XOPEN_SOURCE=800`). Use Linux UAPI where needed; keep ISO C23 syntax, not the GNU C dialect, staying GNU/Linux native. Do not target Windows, macOS, or any other operating system, nor architectures, ISAs, or triples outside the build matrix below. Do not add backward compatibility, legacy support, or broad portability shims.
 
 ## Target
 
@@ -41,18 +39,19 @@ glibc 2.43 feature-test macros enabled by `_GNU_SOURCE=1`:
 
 ## Stack
 
-- gcc 16.2
+- gcc 16.0.1
 - glibc 2.43
-- cmake 4.4
-- ninja 1.13
-- ctest 4.4
-- valgrind 3.25
-- cpack 4.4
-- gcov 16.2
-- python3 3.14
-- clang-format 22
-- node 24
-- npm 12
+- cmake 4.4.4
+- ninja 1.13.2
+- ctest 4.4.4
+- valgrind 3.26.0
+- cpack 4.4.4
+- gcov 16.0.1
+- gcovr 7.2
+- python3 3.14.4
+- clang-format 21.1.8
+- node 24.22.0
+- npm 11.19.1
 
 ## Libs
 
@@ -62,9 +61,9 @@ glibc 2.43 feature-test macros enabled by `_GNU_SOURCE=1`:
 
 ## API preference
 
-For suitable alternatives: GNU extensions > Linux-specific interfaces > POSIX.1-2024 base interfaces > XSI extensions > ISO C23 library interfaces > vetted third-party libraries > direct Linux system calls > custom implementations (last resort).
+Target defines the available interfaces. Preference order when several APIs fit: GNU extensions > Linux-specific interfaces > POSIX.1-2024 base interfaces > XSI extensions > ISO C23 library interfaces > vetted third-party libraries > direct Linux system calls > custom implementations
 
-Prefer public glibc wrappers to direct syscalls; do not reimplement facilities provided by the installed libraries.
+Prefer public glibc wrappers to direct syscalls. Do not reimplement what the installed libraries provide.
 
 ## EditorConfig
 
@@ -159,100 +158,130 @@ UseTab: Never
     └── ...
 ```
 
+## Devcontainer Boundary
+
+The host is the workstation for editing, Git operations and container lifecycle, while the devcontainer runs all non-host targets. Writes produced by those targets are allowed, so do not run them on the host.
+
+Use `devcontainer` for lifecycle and execution, `docker` for individual containers and `docker compose` for services and sidecars, starting once with `make up` before the first `devcontainer exec` and reusing the environment afterward.
+
+Pass arguments as argv. Use `env` for variables and an explicit shell for shell syntax.
+
+```bash
+make up
+devcontainer exec --workspace-folder . <program> [arguments...]
+devcontainer exec --workspace-folder . env NAME=value <program> [arguments...]
+devcontainer exec --workspace-folder . make <target> [VARIABLE=value ...]
+devcontainer exec --workspace-folder . /bin/bash -Eeuo pipefail -c '<make commands>'
+devcontainer exec --workspace-folder . /bin/sh -eu -c '<make commands>'
+docker <command> [arguments...]
+docker compose -f .devcontainer/docker-compose.yml <command> [arguments...]
+docker compose -f .devcontainer/docker-compose.yml exec -T <service> <program> [arguments...]
+```
+
 ## Makefile
 
-Run all commands through make as the command runner and orchestration tool.
+Run repository tasks with Make targets, on the host or in the devcontainer per mark: `[host]` means host only via `host_gate`, `[devcontainer]` means devcontainer only via `devcontainer_gate`, `[interactive]` means terminal required via `interactive_gate`.
 
-- `fix`: `prettier_fix` `clang_format_fix` `trimmer_fix`
-- `check`: `doctor` `lint` `fanalyzer` `test` `coverage` `valgrind` `all` `sanitize` `audit`
-- `doctor`: `git_check` `npm_config_check` `npm_doctor` `npm_check` `cc_check`
-- `lint`: `prettier_check` `clang_format_check` `trimmer_check`
-- `test`: debug cmake build and ctest run
-- `fanalyzer`: fanalyzer cmake build and ctest run
-- `coverage`: coverage cmake build, ctest run, src gcov report and coverage gate
-- `valgrind`: valgrind memcheck on ctest, defects only warn
-- `sanitize`: asan plus ubsan plus tsan plus lsan ctest runs
+- `fix`: `prettier_fix` + `clang_format_fix` + `trimmer_fix`
+- `check` [devcontainer]: `doctor` + `lint` + `fanalyzer` + `test` + `coverage` + `valgrind` + `all` + `sanitize` + `audit`
+- `doctor`: `git_check` + `npm_config_check` + `npm_doctor` + `npm_check` + `toolchain_check`
+- `lint`: `prettier_check` + `clang_format_check` + `trimmer_check`
+- `test` [devcontainer]: configure, build and test via test workflow
+- `fanalyzer` [devcontainer]: configure, build and test via fanalyzer workflow
+- `coverage` [devcontainer]: configure, build, test and report coverage for src
+- `valgrind` [devcontainer]: configure, build and memcheck tests
+- `asan` [devcontainer]: configure, build and test via asan workflow
+- `ubsan` [devcontainer]: configure, build and test via ubsan workflow
+- `tsan` [devcontainer]: configure, build and test via tsan workflow
+- `lsan` [devcontainer]: configure, build and test via lsan workflow
+- `sanitize` [devcontainer]: `asan` + `ubsan` + `tsan` + `lsan`
 - `native`: native release build
-- `debug`: debug cmake build and ctest run
-- `linux_amd64_v1`: cmake release build for x86-64-v1
-- `linux_amd64_v2`: cmake release build for x86-64-v2
-- `linux_amd64_v3`: cmake release build for x86-64-v3
-- `linux_arm64_armv8_a`: cmake release build for armv8-a
-- `linux_arm64_armv9_a`: cmake release build for armv9-a
-- `all`: `debug` `native`
+- `release`: release build
+- `debug`: debug build
+- `linux_amd64_v1`: release build for x86-64-v1
+- `linux_amd64_v2`: release build for x86-64-v2
+- `linux_amd64_v3`: release build for x86-64-v3
+- `linux_arm64_armv8_a`: release build for armv8-a
+- `linux_arm64_armv9_a`: release build for armv9-a
+- `all`: `debug` + `native` + `release`
 - `dist_native`: native cpack tarball
 - `dist_debug`: debug cpack tarball
+- `dist_release`: release cpack tarball
 - `dist_linux_amd64_v1`: cpack tarball for x86-64-v1
 - `dist_linux_amd64_v2`: cpack tarball for x86-64-v2
 - `dist_linux_amd64_v3`: cpack tarball for x86-64-v3
 - `dist_linux_arm64_armv8_a`: cpack tarball for armv8-a
 - `dist_linux_arm64_armv9_a`: cpack tarball for armv9-a
-- `dist`: `dist_native` `dist_debug`
-- `audit`: `npm_audit`
-- `install`: cmake install of native release
+- `dist`: `dist_native` + `dist_debug` + `dist_release`
+- `audit`: audit npm dependencies
+- `install`: install native release
 - `uninstall`: remove installed binary and documentation
 - `installcheck`: verify installed binary and license
-- `update`: `npm_config_check` `npm_update`
-- `postcreate`: `deps_install`
-- `up`: `devcontainer_check` start devcontainer
-- `shell`: `up` shell in devcontainer
-- `stop`: stop devcontainer
-- `down`: remove Compose services and networks
-- `clean`: remove out and dist
-- `distclean`: `clean` `deps_clean`
-- `rebuild`: `devcontainer_check` `down` rebuild devcontainer
-- `deps_install`: `npm_install`
-- `deps_clean`: `npm_clean`
-- `trimmer_fix`: trimmer autofix
-- `trimmer_check`: trimmer check
-- `prettier_fix`: prettier autofix
-- `prettier_check`: prettier check
-- `clang_format_fix`: clang-format autofix C sources
-- `clang_format_check`: clang-format check C sources
+- `update`: `npm_config_check` + `npm_update`
+- `postcreate`: `deps_install` + `toolchain_check`
+- `up` [host]: check config and start devcontainer
+- `shell` [host] [interactive]: open shell in devcontainer via `up`
+- `stop` [host]: stop devcontainer
+- `down` [host]: remove compose services and networks
+- `clean`: remove out, dist and devcontainer tmp
+- `distclean`: `clean` + `deps_clean`
+- `rebuild` [host]: check config, drop containers and rebuild devcontainer
+- `nuke`: `distclean` + `prune`
+- `prune` [host]: remove containers, networks, volumes and images
+- `deps_install`: install npm dependencies
+- `deps_clean`: remove node_modules
+- `trimmer_fix`: fix with trimmer
+- `trimmer_check`: check with trimmer
+- `prettier_fix`: fix with prettier
+- `prettier_check`: check with prettier
+- `clang_format_fix`: fix C sources with clang-format
+- `clang_format_check`: check C sources with clang-format
 - `npm_config_check`: verify npm config
-- `npm_doctor`: npm doctor
-- `npm_check`: `npm_config_check` verify npm tree
-- `npm_audit`: `npm_config_check` npm audit
-- `npm_install`: `npm_config_check` install npm dependencies
-- `npm_update`: `npm_config_check` `npm_clean` update npm dependencies
+- `npm_doctor`: check npm connectivity and setup
+- `npm_check`: verify npm tree via `npm_config_check`
+- `npm_audit`: audit npm dependencies via `npm_config_check`
+- `npm_install`: install npm dependencies via `npm_config_check`
+- `npm_update`: clean and update npm dependencies via `npm_config_check`
 - `npm_clean`: remove node_modules
 - `git_check`: verify clean git tree
-- `cc_check`: print cmake, gcc, ninja, ctest, valgrind, gcov, and clang-format versions
-- `devcontainer_check`: validate devcontainer config
+- `toolchain_check`: print toolchain versions
+- `devcontainer_check` [host]: validate devcontainer config
+- `host_gate` [host]: fail inside container
+- `interactive_gate` [interactive]: fail without terminal, required by `shell`
+- `devcontainer_gate` [devcontainer]: fail outside devcontainer
 
 ## Workflows
 
-- `debug`: debug cmake build and ctest run
-- `fanalyzer`: fanalyzer cmake build and ctest run
-- `asan`: address sanitizer ctest run with undefined behavior checks
-- `ubsan`: undefined behavior sanitizer ctest run
-- `tsan`: thread sanitizer ctest run
-- `lsan`: leak sanitizer ctest run
-- `valgrind`: valgrind cmake build
-- `coverage`: coverage cmake build and ctest run
-- `build-linux-amd64-v1`: cmake release build for x86-64-v1
-- `build-linux-amd64-v2`: cmake release build for x86-64-v2
-- `build-linux-amd64-v3`: cmake release build for x86-64-v3
-- `build-linux-arm64-armv8-a`: cmake release build for armv8-a
-- `build-linux-arm64-armv9-a`: cmake release build for armv9-a
-- `build-native`: cmake release build for native architecture
-- `dist-linux-amd64-v1`: cpack tarball for x86-64-v1
-- `dist-linux-amd64-v2`: cpack tarball for x86-64-v2
-- `dist-linux-amd64-v3`: cpack tarball for x86-64-v3
-- `dist-linux-arm64-armv8-a`: cpack tarball for armv8-a
-- `dist-linux-arm64-armv9-a`: cpack tarball for armv9-a
-- `dist-native`: cpack tarball for native architecture
-- `dist-debug`: debug cmake build, ctest run and cpack tarball
+- `test`: configure, build and test with debug preset
+- `fanalyzer`: configure, build and test with fanalyzer preset
+- `asan`: configure, build and test with asan preset
+- `ubsan`: configure, build and test with ubsan preset
+- `tsan`: configure, build and test with tsan preset
+- `lsan`: configure, build and test with lsan preset
+- `valgrind`: configure and build with valgrind preset
+- `coverage`: configure, build and test with coverage preset
+- `build-debug`: configure and build with debug preset
+- `build-linux-amd64-v1`: configure and build for x86-64-v1
+- `build-linux-amd64-v2`: configure and build for x86-64-v2
+- `build-linux-amd64-v3`: configure and build for x86-64-v3
+- `build-linux-arm64-armv8-a`: configure and build for armv8-a
+- `build-linux-arm64-armv9-a`: configure and build for armv9-a
+- `build-native`: configure and build for native architecture
+- `build-release`: configure and build for release
+- `dist-linux-amd64-v1`: configure, build and package for x86-64-v1
+- `dist-linux-amd64-v2`: configure, build and package for x86-64-v2
+- `dist-linux-amd64-v3`: configure, build and package for x86-64-v3
+- `dist-linux-arm64-armv8-a`: configure, build and package for armv8-a
+- `dist-linux-arm64-armv9-a`: configure, build and package for armv9-a
+- `dist-native`: configure, build and package for native architecture
+- `dist-debug`: configure, build and package with debug preset
+- `dist-release`: configure, build and package for release
 
 ## Quality gate
 
-Mirror each `src/**/<XXX>.c` / `src/**/<XXX>.h` with `tests/**/test_<XXX>.c`.
+Mirror each `src` unit with `tests/test_*.c`. `src/main.c` is covered by `integration.main`, no `tests/test_main.c` needed, and require 100% line and function coverage in `src`, enforced by gcovr with gcov. Collect from the full coverage build, filter to `src`, exclude tests from report and gate. No exclusion markers, no suppressed collection or parsing errors. Fault injection with test-only `ld --wrap`, production code unchanged.
 
-Require 100% line and function coverage under `src/`. Use test-only GNU ld `--wrap` for fault injection; leave production code unchanged.
-
-WireMock tests use `WIREMOCK_URL` and CTest `RESOURCE_LOCK wiremock`.
-
-Before you finish, run `make fix`, then run `make check`. Both commands must pass with no warnings, no test failures, no leaks, and no audit findings. If anything fails, fix the code or the tests and run both commands again. Never leave the repository with a red `make check`.
+WireMock tests use `WIREMOCK_URL` and `RESOURCE_LOCK wiremock`. Finish with `make fix`, then `make check`. Both must pass with no warnings, failures, leaks, or audit findings. On failure fix code or tests and repeat. Never leave a red `make check`.
 
 ## ISO/IEC 9899:2024
 
@@ -950,97 +979,110 @@ d-wchar-sequence:
 	d-wchar-sequence nondigit
 ```
 
-### Limits
+### Implementation limits
 
-- `BOOL_WIDTH 1`
-- `CHAR_BIT 8`
-- `USHRT_WIDTH 16`
-- `UINT_WIDTH 32`
-- `ULONG_WIDTH 64`
-- `ULLONG_WIDTH 64`
-- `BITINT_MAXWIDTH 65535`
-- `MB_LEN_MAX 16`
-- `BOOL_MAX 1`
-- `CHAR_MAX 127`
-- `CHAR_MIN (-128)`
-- `CHAR_WIDTH 8`
-- `UCHAR_MAX 255`
-- `UCHAR_WIDTH 8`
-- `USHRT_MAX 65535`
-- `SCHAR_MAX 127`
-- `SCHAR_MIN (-128)`
-- `SCHAR_WIDTH 8`
-- `SHRT_MAX 32767`
-- `SHRT_MIN (-32768)`
-- `SHRT_WIDTH 16`
-- `INT_MAX 2147483647`
-- `INT_MIN (-2147483647 - 1)`
-- `INT_WIDTH 32`
-- `UINT_MAX 4294967295U`
-- `LONG_MAX 9223372036854775807L`
-- `LONG_MIN (-9223372036854775807L - 1L)`
-- `LONG_WIDTH 64`
-- `LLONG_MAX 9223372036854775807LL`
-- `LLONG_MIN (-9223372036854775807LL - 1LL)`
-- `LLONG_WIDTH 64`
-- `ULONG_MAX 18446744073709551615UL`
-- `ULLONG_MAX 18446744073709551615ULL`
-- `FLT_EVAL_METHOD 0`
-- `FLT_ROUNDS 1`
-- `DEC_EVAL_METHOD 2`
-- `DBL_DECIMAL_DIG 17`
-- `DBL_DIG 15`
-- `DBL_MANT_DIG 53`
-- `DBL_MAX_10_EXP 308`
-- `DBL_MAX_EXP 1024`
-- `DBL_MIN_10_EXP (-307)`
-- `DBL_MIN_EXP (-1021)`
-- `DECIMAL_DIG 21`
-- `FLT_DECIMAL_DIG 9`
-- `FLT_DIG 6`
-- `FLT_MANT_DIG 24`
-- `FLT_MAX_10_EXP 38`
-- `FLT_MAX_EXP 128`
-- `FLT_MIN_10_EXP (-37)`
-- `FLT_MIN_EXP (-125)`
-- `FLT_RADIX 2`
-- `LDBL_DECIMAL_DIG 21`
-- `LDBL_DIG 18`
-- `LDBL_MANT_DIG 64`
-- `LDBL_MAX_10_EXP 4932`
-- `LDBL_MAX_EXP 16384`
-- `LDBL_MIN_10_EXP (-4931)`
-- `LDBL_MIN_EXP (-16381)`
-- `DBL_MAX 1.79769313486231570814527423731704357e+308`
-- `DBL_NORM_MAX 1.79769313486231570814527423731704357e+308`
-- `FLT_MAX 3.40282346638528859811704183484516925e+38F`
-- `FLT_NORM_MAX 3.40282346638528859811704183484516925e+38F`
-- `LDBL_MAX 1.18973149535723176502126385303097021e+4932L`
-- `LDBL_NORM_MAX 1.18973149535723176502126385303097021e+4932L`
-- `DBL_EPSILON 2.22044604925031308084726333618164062e-16`
-- `DBL_MIN 2.22507385850720138309023271733240406e-308`
-- `FLT_EPSILON 1.19209289550781250000000000000000000e-7F`
-- `FLT_MIN 1.17549435082228750796873653722224568e-38F`
-- `LDBL_EPSILON 1.08420217248550443400745280086994171e-19L`
-- `LDBL_MIN 3.36210314311209350626267781732175260e-4932L`
-- `DEC32_EPSILON 1E-6DF`
-- `DEC32_MANT_DIG 7`
-- `DEC32_MAX 9.999999E96DF`
-- `DEC32_MAX_EXP 97`
-- `DEC32_MIN 1E-95DF`
-- `DEC32_MIN_EXP (-94)`
-- `DEC32_TRUE_MIN 0.000001E-95DF`
-- `DEC64_EPSILON 1E-15DD`
-- `DEC64_MANT_DIG 16`
-- `DEC64_MAX 9.999999999999999E384DD`
-- `DEC64_MAX_EXP 385`
-- `DEC64_MIN 1E-383DD`
-- `DEC64_MIN_EXP (-382)`
-- `DEC64_TRUE_MIN 0.000000000000001E-383DD`
-- `DEC128_EPSILON 1E-33DL`
-- `DEC128_MANT_DIG 34`
-- `DEC128_MAX 9.999999999999999999999999999999999E6144DL`
-- `DEC128_MAX_EXP 6145`
-- `DEC128_MIN 1E-6143DL`
-- `DEC128_MIN_EXP (-6142)`
-- `DEC128_TRUE_MIN 0.000000000000000000000000000000001E-6143DL`
+```text
+#define BOOL_WIDTH 1 // exact value
+#define CHAR_BIT 8
+#define USHRT_WIDTH 16
+#define UINT_WIDTH 16
+#define ULONG_WIDTH 32
+#define ULLONG_WIDTH 64
+#define BITINT_MAXWIDTH ULLONG_WIDTH // at minimum as large as unsigned long long
+#define MB_LEN_MAX 1
+
+#define BOOL_MAX 1 // 2^BOOL_WIDTH - 1
+#define CHAR_MAX UCHAR_MAX or SCHAR_MAX
+#define CHAR_MIN 0 or SCHAR_MIN
+#define CHAR_WIDTH 8 // CHAR_BIT
+#define UCHAR_MAX 255 // 2^UCHAR_WIDTH - 1
+#define UCHAR_WIDTH 8 // CHAR_BIT
+#define USHRT_MAX 65535 // 2^USHRT_WIDTH - 1
+#define SCHAR_MAX +127 // 2^(SCHAR_WIDTH-1) - 1
+#define SCHAR_MIN -128 // -2^(SCHAR_WIDTH-1)
+#define SCHAR_WIDTH 8 // CHAR_BIT
+#define SHRT_MAX +32767 // 2^(SHRT_WIDTH-1) - 1
+#define SHRT_MIN -32768 // -2^(SHRT_WIDTH-1)
+#define SHRT_WIDTH 16 // USHRT_WIDTH
+#define INT_MAX +32767 // 2^(INT_WIDTH-1) - 1
+#define INT_MIN -32768 // -2^(INT_WIDTH-1)
+#define INT_WIDTH 16 // UINT_WIDTH
+#define UINT_MAX 65535 // 2^UINT_WIDTH - 1
+#define LONG_MAX +2147483647 // 2^(LONG_WIDTH-1) - 1
+#define LONG_MIN -2147483648 // -2^(LONG_WIDTH-1)
+#define LONG_WIDTH 32 // ULONG_WIDTH
+#define LLONG_MAX +9223372036854775807 // 2^(LLONG_WIDTH-1) - 1
+#define LLONG_MIN -9223372036854775808 // -2^(LLONG_WIDTH-1)
+#define LLONG_WIDTH 64 // ULLONG_WIDTH
+#define ULONG_MAX 4294967295 // 2^ULONG_WIDTH - 1
+#define ULLONG_MAX 18446744073709551615 // 2^ULLONG_WIDTH - 1
+
+#define FLT_EVAL_METHOD
+#define FLT_ROUNDS
+
+#ifdef __STDC_IEC_60559_DFP__
+#define DEC_EVAL_METHOD
+#endif
+
+#define DBL_DECIMAL_DIG 10
+#define DBL_DIG 10
+#define DBL_MANT_DIG
+#define DBL_MAX_10_EXP +37
+#define DBL_MAX_EXP
+#define DBL_MIN_10_EXP -37
+#define DBL_MIN_EXP
+#define DECIMAL_DIG 10
+#define FLT_DECIMAL_DIG 6
+#define FLT_DIG 6
+#define FLT_MANT_DIG
+#define FLT_MAX_10_EXP +37
+#define FLT_MAX_EXP
+#define FLT_MIN_10_EXP -37
+#define FLT_MIN_EXP
+#define FLT_RADIX 2
+#define LDBL_DECIMAL_DIG 10
+#define LDBL_DIG 10
+#define LDBL_MANT_DIG
+#define LDBL_MAX_10_EXP +37
+#define LDBL_MAX_EXP
+#define LDBL_MIN_10_EXP -37
+#define LDBL_MIN_EXP
+
+#define DBL_MAX 1E+37
+#define DBL_NORM_MAX 1E+37
+#define FLT_MAX 1E+37
+#define FLT_NORM_MAX 1E+37
+#define LDBL_MAX 1E+37
+#define LDBL_NORM_MAX 1E+37
+
+#define DBL_EPSILON 1E-9
+#define DBL_MIN 1E-37
+#define FLT_EPSILON 1E-5
+#define FLT_MIN 1E-37
+#define LDBL_EPSILON 1E-9
+#define LDBL_MIN 1E-37
+
+#ifdef __STDC_IEC_60559_DFP__
+#define DEC32_EPSILON 1E-6DF
+#define DEC32_MANT_DIG 7
+#define DEC32_MAX 9.999999E96DF
+#define DEC32_MAX_EXP 97
+#define DEC32_MIN 1E-95DF
+#define DEC32_MIN_EXP -94
+#define DEC32_TRUE_MIN 0.000001E-95DF
+#define DEC64_EPSILON 1E-15DD
+#define DEC64_MANT_DIG 16
+#define DEC64_MAX 9.999999999999999E384DD
+#define DEC64_MAX_EXP 385
+#define DEC64_MIN 1E-383DD
+#define DEC64_MIN_EXP -382
+#define DEC64_TRUE_MIN 0.000000000000001E-383DD
+#define DEC128_EPSILON 1E-33DL
+#define DEC128_MANT_DIG 34
+#define DEC128_MAX 9.999999999999999999999999999999999E6144DL
+#define DEC128_MAX_EXP 6145
+#define DEC128_MIN 1E-6143DL
+#define DEC128_MIN_EXP -6142
+#define DEC128_TRUE_MIN 0.000000000000000000000000000000001E-6143DL
+#endif
+```

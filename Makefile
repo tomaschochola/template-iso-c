@@ -26,18 +26,19 @@ never:
 
 # Options
 
-DEVCONTAINER_COMPOSE := ./.devcontainer/docker-compose.yml
-
-CC ?= gcc
+COMPOSE_PROJECT_NAME ?= template-iso-c-$(shell pwd -P | sha256sum | cut -c1-16)
 CFLAGS ?=
 LDFLAGS ?=
-LC_ALL ?= C.UTF-8
 DESTDIR ?=
 VERSION ?= $(shell v=$$(git describe --tags --abbrev=0 2>/dev/null || echo 0.0.0); v=$${v#v}; echo "$$v")
 SOURCE_DATE_EPOCH ?= $(shell git log -1 --format=%ct 2>/dev/null || echo 0)
-PROGRAM := template-iso-c
 prefix ?= /usr/local
 SUDO ?= sudo
+
+DEVCONTAINER_COMPOSE := ./.devcontainer/docker-compose.yml
+DEVCONTAINER_TMPDIR := $(CURDIR)/.devcontainer/.tmp
+CC := gcc
+LC_ALL := C.UTF-8
 
 export CC
 export CFLAGS
@@ -45,6 +46,7 @@ export LDFLAGS
 export LC_ALL
 export VERSION
 export SOURCE_DATE_EPOCH
+export COMPOSE_PROJECT_NAME
 
 # Public goals
 
@@ -52,35 +54,34 @@ export SOURCE_DATE_EPOCH
 fix: prettier_fix clang_format_fix trimmer_fix
 
 .PHONY: check
-check: doctor lint fanalyzer test coverage valgrind all sanitize audit
+check: devcontainer_gate doctor lint fanalyzer test coverage valgrind all sanitize audit
 
 .PHONY: doctor
-doctor: git_check npm_config_check npm_doctor npm_check cc_check
+doctor: git_check npm_config_check npm_doctor npm_check toolchain_check
 
 .PHONY: lint
 lint: prettier_check clang_format_check trimmer_check
 
 .PHONY: test
-test:
-	cmake --workflow --preset debug
+test: devcontainer_gate
+	cmake --workflow --preset test
 
 .PHONY: debug
 debug:
-	cmake --workflow --preset debug
+	cmake --workflow --preset build-debug
 
 .PHONY: fanalyzer
-fanalyzer:
+fanalyzer: devcontainer_gate
 	cmake --workflow --preset fanalyzer
 
 .PHONY: coverage
-coverage:
+coverage: devcontainer_gate
 	rm --force --recursive --one-file-system -- ./out/build/coverage
 	cmake --workflow --preset coverage
-	cd ./out/build/coverage && find ./src -name '*.gcno' -print0 | xargs -0 -r gcov --branch-counts --branch-probabilities --conditions --function-summaries --all-blocks --unconditional-branches --preserve-paths
-	cd ./out/build/coverage && find ./src -name '*.gcno' -print0 | xargs -0 -r gcov --json-format --stdout | python3 -c 'import json,pathlib,sys; root=pathlib.Path("../../../src").resolve(); files=[f for s in sys.stdin if s.startswith("{") for f in json.loads(s)["files"] if pathlib.Path(f["file"]).resolve().is_relative_to(root)]; lines=[l for f in files for l in f["lines"]]; functions=[f for file in files for f in file["functions"]]; sys.exit(not (lines and functions and all(l["count"]>0 for l in lines) and all(f["execution_count"]>0 for f in functions)))'
+	gcovr --root . --filter 'src/' --gcov-executable gcov-16 --no-markers --fail-under-line 100 --fail-under-function 100 --print-summary ./out/build/coverage
 
 .PHONY: valgrind
-valgrind:
+valgrind: devcontainer_gate
 	cmake --workflow --preset valgrind
 	ctest --test-dir ./out/build/valgrind --output-on-failure --stop-on-failure --no-tests=error -T MemCheck
 
@@ -88,18 +89,34 @@ valgrind:
 audit: npm_audit
 
 .PHONY: update
-update: npm_config_check ./package.json ./package-lock.json npm_update
+update: npm_config_check npm_update
+
+.PHONY: asan
+asan: devcontainer_gate
+	cmake --workflow --preset asan
+
+.PHONY: ubsan
+ubsan: devcontainer_gate
+	cmake --workflow --preset ubsan
+
+.PHONY: tsan
+tsan: devcontainer_gate
+	cmake --workflow --preset tsan
+
+.PHONY: lsan
+lsan: devcontainer_gate
+	cmake --workflow --preset lsan
 
 .PHONY: sanitize
-sanitize:
-	cmake --workflow --preset asan
-	cmake --workflow --preset ubsan
-	cmake --workflow --preset tsan
-	cmake --workflow --preset lsan
+sanitize: asan ubsan tsan lsan
 
 .PHONY: native
 native:
 	cmake --workflow --preset build-native
+
+.PHONY: release
+release:
+	cmake --workflow --preset build-release
 
 .PHONY: linux_amd64_v1
 linux_amd64_v1:
@@ -122,7 +139,7 @@ linux_arm64_armv9_a:
 	cmake --workflow --preset build-linux-arm64-armv9-a
 
 .PHONY: all
-all: debug native
+all: debug native release
 
 .PHONY: dist_native
 dist_native:
@@ -131,6 +148,10 @@ dist_native:
 .PHONY: dist_debug
 dist_debug:
 	cmake --workflow --preset dist-debug
+
+.PHONY: dist_release
+dist_release:
+	cmake --workflow --preset dist-release
 
 .PHONY: dist_linux_amd64_v1
 dist_linux_amd64_v1:
@@ -153,55 +174,78 @@ dist_linux_arm64_armv9_a:
 	cmake --workflow --preset dist-linux-arm64-armv9-a
 
 .PHONY: dist
-dist: dist_native dist_debug
+dist: dist_native dist_debug dist_release
 
 .PHONY: install
 install:
 	cmake --workflow --preset build-native
-	$(SUDO) env DESTDIR="$(DESTDIR)" cmake --install ./out/build/native --prefix "$(prefix)"
+	$(SUDO) env DESTDIR="$(DESTDIR)" cmake --install ./out/build/native --prefix "$(prefix)" --component Unspecified
 
 .PHONY: uninstall
 uninstall:
-	$(SUDO) rm --force -- "$(DESTDIR)$(prefix)/bin/$(PROGRAM)"
-	$(SUDO) rm --force -- "$(DESTDIR)$(prefix)/share/doc/template-iso-c/LICENSE"
+	test -f ./out/build/native/install_manifest_Unspecified.txt
+	$(SUDO) xargs --no-run-if-empty --delimiter='\n' --replace='{}' rm --force -- "$(DESTDIR){}" < ./out/build/native/install_manifest_Unspecified.txt
 
 .PHONY: installcheck
 installcheck:
-	test -f "$(DESTDIR)$(prefix)/bin/$(PROGRAM)"
-	test -x "$(DESTDIR)$(prefix)/bin/$(PROGRAM)"
-	test -f "$(DESTDIR)$(prefix)/share/doc/template-iso-c/LICENSE"
+	test -f ./out/build/native/install_manifest_Unspecified.txt
+	xargs --no-run-if-empty --delimiter='\n' --replace='{}' test -f "$(DESTDIR){}" < ./out/build/native/install_manifest_Unspecified.txt
 
 .PHONY: postcreate
-postcreate: deps_install
+postcreate: deps_install toolchain_check
 
 .PHONY: up
-up: devcontainer_check
-	devcontainer up --workspace-folder .
+up: host_gate devcontainer_check
+	mkdir --parents -- "$(DEVCONTAINER_TMPDIR)"
+	env TMPDIR="$(DEVCONTAINER_TMPDIR)" devcontainer up --workspace-folder .
 
 .PHONY: shell
-shell: up
+shell: interactive_gate host_gate up
 	devcontainer exec --workspace-folder . /bin/bash
 
 .PHONY: stop
-stop:
+stop: host_gate
 	docker compose -f "$(DEVCONTAINER_COMPOSE)" stop
 
 .PHONY: down
-down:
+down: host_gate
 	docker compose -f "$(DEVCONTAINER_COMPOSE)" down --remove-orphans
 
 .PHONY: rebuild
-rebuild: devcontainer_check down
-	devcontainer up --workspace-folder . --build-no-cache
+rebuild: host_gate devcontainer_check down
+	mkdir --parents -- "$(DEVCONTAINER_TMPDIR)"
+	env TMPDIR="$(DEVCONTAINER_TMPDIR)" devcontainer up --workspace-folder . --build-no-cache
+
+.PHONY: nuke
+nuke: distclean prune
+
+.PHONY: prune
+prune: host_gate
+	docker compose -f "$(DEVCONTAINER_COMPOSE)" down --volumes --rmi all --remove-orphans
 
 .PHONY: clean
 clean:
-	rm --force --recursive --one-file-system -- ./dist ./out
+	rm --force --recursive --one-file-system -- ./dist ./out "$(DEVCONTAINER_TMPDIR)"
 
 .PHONY: distclean
 distclean: clean deps_clean
 
 # Protected goals
+
+.PHONY: host_gate
+.SILENT: host_gate
+host_gate:
+	if test -e /.dockerenv; then printf '%s\n' 'host_gate: host only' >&2; exit 1; fi
+
+.PHONY: devcontainer_gate
+.SILENT: devcontainer_gate
+devcontainer_gate:
+	if test ! -e /.dockerenv; then printf '%s\n' 'devcontainer_gate: devcontainer only' >&2; exit 1; fi
+
+.PHONY: interactive_gate
+.SILENT: interactive_gate
+interactive_gate:
+	if test ! -t 0 || test ! -t 1; then printf '%s\n' 'interactive_gate: interactive only' >&2; exit 1; fi
 
 .PHONY: deps_install
 deps_install: npm_install
@@ -231,7 +275,7 @@ clang_format_fix: ./.clang-format
 
 .PHONY: clang_format_check
 clang_format_check: ./.clang-format
-	find ./src ./tests -type f '(' -name '*.c' -o -name '*.h' ')' -print0 | xargs -0 -r clang-format -n --Werror --style=file --fallback-style=none --
+	find ./src ./tests -type f '(' -name '*.c' -o -name '*.h' ')' -print0 | xargs -0 -r clang-format -n --Werror --style=file --
 
 .PHONY: npm_config_check
 npm_config_check: ./.npmrc
@@ -277,18 +321,19 @@ git_check:
 	git diff --cached --check
 	git fsck --full --strict --no-dangling --no-progress
 
-.PHONY: cc_check
-cc_check:
+.PHONY: toolchain_check
+toolchain_check:
 	cmake --version
 	gcc --version
 	ninja --version
 	ctest --version
 	valgrind --version
 	gcov --version
+	gcovr --version
 	clang-format --version
 
 .PHONY: devcontainer_check
-devcontainer_check:
+devcontainer_check: host_gate
 	devcontainer read-configuration --workspace-folder . >/dev/null
 	docker compose -f "$(DEVCONTAINER_COMPOSE)" config --quiet
 	docker build --check --file ./.devcontainer/Dockerfile ./.devcontainer

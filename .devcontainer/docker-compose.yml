@@ -1,5 +1,3 @@
-name: 'template-iso-c-devcontainer'
-
 networks:
     devcontainer:
         internal: false

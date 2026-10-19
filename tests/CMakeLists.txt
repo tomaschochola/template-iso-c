@@ -7,6 +7,12 @@ function(template_iso_c_add_unit_test test target)
             c_std_23
     )
 
+    target_compile_options(
+        ${target}
+        PRIVATE
+            -UNDEBUG
+    )
+
     set_target_properties(
         ${target}
         PROPERTIES

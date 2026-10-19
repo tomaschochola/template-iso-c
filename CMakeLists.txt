@@ -37,7 +37,7 @@ endif()
 
 include(GNUInstallDirs)
 
-set(MEMORYCHECK_COMMAND_OPTIONS "--leak-check=full --track-origins=yes")
+set(MEMORYCHECK_COMMAND_OPTIONS "--leak-check=full --show-leak-kinds=all --errors-for-leak-kinds=all --track-origins=yes --error-exitcode=1")
 
 include(CTest)
 
@@ -70,7 +70,6 @@ install(
 )
 
 set(CPACK_PACKAGE_NAME "template-iso-c")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${PROJECT_DESCRIPTION}")
 set(CPACK_PACKAGE_VENDOR "Tomáš Chochola")
 set(CPACK_GENERATOR "TGZ")
 set(CPACK_PACKAGE_CHECKSUM "SHA256")
