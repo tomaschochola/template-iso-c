@@ -240,7 +240,7 @@ Run `make <target>` from the repository root. The labels show the required envir
 - `distclean`: `clean` + `deps_clean`
 - `rebuild` [host]: check configuration, remove project containers and rebuild the devcontainer without cache
 - `nuke` [host]: `distclean` + `prune`
-- `prune` [host]: remove project containers, networks, volumes and service images
+- `prune` [host]: remove project containers, networks, volumes and locally built images; keep shared registry images
 - `deps_install`: install npm dependencies
 - `deps_clean`: remove `node_modules/`
 - `trimmer_fix`: fix whitespace and line endings with Trimmer
