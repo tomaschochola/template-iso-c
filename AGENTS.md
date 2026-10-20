@@ -1,8 +1,8 @@
 # AGENTS.md
 
-Do serious software engineering and serious computer science in ISO/IEC 9899:2024 C (`-std=c23`) for native 64-bit little-endian GNU/Linux (LP64) on Linux 7.x with glibc 2.43. Target `x86_64-pc-linux-gnu` across x86-64-v1, x86-64-v2, and x86-64-v3 and `aarch64-linux-gnu` across armv8-a and armv9-a. Always define `_GNU_SOURCE=1` to use public glibc APIs, including GNU extensions, Linux-specific interfaces, POSIX.1-2024 (`_POSIX_C_SOURCE=202405L`) and XSI (`_XOPEN_SOURCE=800`). Use Linux UAPI where needed; keep ISO C23 syntax, not the GNU C dialect, staying GNU/Linux native. Do not target Windows, macOS, or any other operating system, nor architectures, ISAs, or triples outside the build matrix below. Do not add backward compatibility, legacy support, or broad portability shims.
+Apply serious software engineering and serious computer science to build reliable, maintainable software in ISO/IEC 9899:2024 C (`-std=c23`) for 64-bit little-endian GNU/Linux (LP64), using Linux 7.x and glibc 2.43. Support `x86_64-pc-linux-gnu` with x86-64-v1, x86-64-v2 and x86-64-v3, and `aarch64-linux-gnu` with armv8-a and armv9-a. Define `_GNU_SOURCE=1` before including system headers to enable public glibc APIs, including GNU extensions, Linux-specific interfaces, POSIX.1-2024 (`_POSIX_C_SOURCE=202405L`) and XSI (`_XOPEN_SOURCE=800`).
 
-## Target
+## Target platform
 
 - OS: GNU/Linux
 - Kernel: Linux 7.x
@@ -11,16 +11,16 @@ Do serious software engineering and serious computer science in ISO/IEC 9899:202
 - Bits: 64-bit, LP64, little-endian
 - ISA: x86-64-v1, x86-64-v2, x86-64-v3, armv8-a, armv9-a
 - Libc: glibc 2.43
-- Interfaces: glibc public APIs, GNU extensions, Linux UAPI, POSIX.1-2024, XSI, ISO C23
+- Interfaces: GNU extensions, Linux-specific interfaces, Linux UAPI, POSIX.1-2024, XSI, ISO C23
 
-## Language
+## Language and warnings
 
 - `-std=c23`
 - `-Wall -Wextra -Wpedantic -pedantic-errors`
 
-## Features
+## Feature-test macros
 
-glibc 2.43 feature-test macros enabled by `_GNU_SOURCE=1`:
+Defining `_GNU_SOURCE=1` enables the following feature-test macros in glibc 2.43:
 
 - `_ISOC95_SOURCE=1`
 - `_ISOC99_SOURCE=1`
@@ -37,7 +37,7 @@ glibc 2.43 feature-test macros enabled by `_GNU_SOURCE=1`:
 - `_ATFILE_SOURCE=1`
 - `_DYNAMIC_STACK_SIZE_SOURCE=1`
 
-## Stack
+## Toolchain versions
 
 - gcc 16.0.1
 - glibc 2.43
@@ -53,17 +53,19 @@ glibc 2.43 feature-test macros enabled by `_GNU_SOURCE=1`:
 - node 24.22.0
 - npm 11.19.1
 
-## Libs
+## System libraries
 
 - libcurl: `libcurl4-openssl-dev`
 - json-c: `libjson-c-dev`
 - SQLite: `libsqlite3-dev`, `sqlite3`
 
-## API preference
+## GNU/Linux platform usage
 
-Target defines the available interfaces. Preference order when several APIs fit: GNU extensions > Linux-specific interfaces > POSIX.1-2024 base interfaces > XSI extensions > ISO C23 library interfaces > vetted third-party libraries > direct Linux system calls > custom implementations
+Take full advantage of glibc and GNU/Linux on the supported 64-bit platforms. Portability to other systems is not a requirement and should not constrain the design.
 
-Prefer public glibc wrappers to direct syscalls. Do not reimplement what the installed libraries provide.
+Choose interfaces and libraries to suit the task, drawing on GNU extensions, Linux features and system facilities exposed through files, devices and sockets. Prefer platform-specific capabilities when they offer a practical advantage, without adding complexity merely to use them.
+
+Prefer existing libraries and system interfaces to custom implementations, and public library wrappers to direct system calls. Use lower-level interfaces or custom code when they better meet the requirements.
 
 ## EditorConfig
 
@@ -126,7 +128,7 @@ UseTab: Never
 ...
 ```
 
-## Tree
+## Repository layout
 
 ```text
 .
@@ -158,29 +160,9 @@ UseTab: Never
     └── ...
 ```
 
-## Devcontainer Boundary
+## Makefile targets
 
-The host is the workstation for editing, Git operations and container lifecycle, while the devcontainer runs all non-host targets. Writes produced by those targets are allowed, so do not run them on the host.
-
-Use `devcontainer` for lifecycle and execution, `docker` for individual containers and `docker compose` for services and sidecars, starting once with `make up` before the first `devcontainer exec` and reusing the environment afterward.
-
-Pass arguments as argv. Use `env` for variables and an explicit shell for shell syntax.
-
-```bash
-make up
-devcontainer exec --workspace-folder . <program> [arguments...]
-devcontainer exec --workspace-folder . env NAME=value <program> [arguments...]
-devcontainer exec --workspace-folder . make <target> [VARIABLE=value ...]
-devcontainer exec --workspace-folder . /bin/bash -Eeuo pipefail -c '<make commands>'
-devcontainer exec --workspace-folder . /bin/sh -eu -c '<make commands>'
-docker <command> [arguments...]
-docker compose -f .devcontainer/docker-compose.yml <command> [arguments...]
-docker compose -f .devcontainer/docker-compose.yml exec -T <service> <program> [arguments...]
-```
-
-## Makefile
-
-Run repository tasks with Make targets, on the host or in the devcontainer per mark: `[host]` means host only via `host_gate`, `[devcontainer]` means devcontainer only via `devcontainer_gate`, `[interactive]` means terminal required via `interactive_gate`.
+Run these targets with `make <target>`.
 
 - `fix`: `prettier_fix` + `clang_format_fix` + `trimmer_fix`
 - `check` [devcontainer]: `doctor` + `lint` + `fanalyzer` + `test` + `coverage` + `valgrind` + `all` + `sanitize` + `audit`
@@ -188,7 +170,7 @@ Run repository tasks with Make targets, on the host or in the devcontainer per m
 - `lint`: `prettier_check` + `clang_format_check` + `trimmer_check`
 - `test` [devcontainer]: configure, build and test via test workflow
 - `fanalyzer` [devcontainer]: configure, build and test via fanalyzer workflow
-- `coverage` [devcontainer]: configure, build, test and report coverage for src
+- `coverage` [devcontainer]: run tests and report coverage for `src/`
 - `valgrind` [devcontainer]: configure, build and memcheck tests
 - `asan` [devcontainer]: configure, build and test via asan workflow
 - `ubsan` [devcontainer]: configure, build and test via ubsan workflow
@@ -247,10 +229,12 @@ Run repository tasks with Make targets, on the host or in the devcontainer per m
 - `toolchain_check`: print toolchain versions
 - `devcontainer_check` [host]: validate devcontainer config
 - `host_gate` [host]: fail inside container
-- `interactive_gate` [interactive]: fail without terminal, required by `shell`
+- `interactive_gate` [interactive]: fail without terminal
 - `devcontainer_gate` [devcontainer]: fail outside devcontainer
 
-## Workflows
+## CMake workflow presets
+
+Run these workflows with `cmake --workflow --preset <name>`.
 
 - `test`: configure, build and test with debug preset
 - `fanalyzer`: configure, build and test with fanalyzer preset
@@ -277,11 +261,13 @@ Run repository tasks with Make targets, on the host or in the devcontainer per m
 - `dist-debug`: configure, build and package with debug preset
 - `dist-release`: configure, build and package for release
 
-## Quality gate
+## Quality gates
 
-Mirror each `src` unit with `tests/test_*.c`. `src/main.c` is covered by `integration.main`, no `tests/test_main.c` needed, and require 100% line and function coverage in `src`, enforced by gcovr with gcov. Collect from the full coverage build, filter to `src`, exclude tests from report and gate. No exclusion markers, no suppressed collection or parsing errors. Fault injection with test-only `ld --wrap`, production code unchanged.
+Write tests for the code in `src/`, keep them in `tests/` and register them with CTest. Where dependency substitution or fault injection is needed, use `ld --wrap` in test builds.
 
-WireMock tests use `WIREMOCK_URL` and `RESOURCE_LOCK wiremock`. Finish with `make fix`, then `make check`. Both must pass with no warnings, failures, leaks, or audit findings. On failure fix code or tests and repeat. Never leave a red `make check`.
+Use WireMock for HTTP testing, with its address supplied by `WIREMOCK_URL`. Tests sharing the service must set the CTest `RESOURCE_LOCK` property to `wiremock` to prevent concurrent tests from interfering with one another.
+
+Run `make fix` to apply the repository's formatting rules, then `make check` to verify the changes against its quality checks. Both must pass before the work is considered complete, so changes follow a consistent style and are checked for defects and regressions.
 
 ## ISO/IEC 9899:2024
 
