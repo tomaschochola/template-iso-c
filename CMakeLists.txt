@@ -37,7 +37,8 @@ endif()
 
 include(GNUInstallDirs)
 
-set(MEMORYCHECK_COMMAND_OPTIONS "--leak-check=full --show-leak-kinds=all --errors-for-leak-kinds=all --track-origins=yes --error-exitcode=1")
+set(MEMORYCHECK_TYPE "Valgrind")
+set(MEMORYCHECK_COMMAND_OPTIONS "--tool=memcheck --leak-check=full --show-leak-kinds=all --errors-for-leak-kinds=all --track-origins=yes --trace-children=yes --error-exitcode=255")
 
 include(CTest)
 
