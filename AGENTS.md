@@ -1,16 +1,20 @@
 # AGENTS.md
 
-Apply serious software engineering and serious computer science to build reliable, maintainable software in ISO/IEC 9899:2024 C (`-std=c23`) for 64-bit little-endian GNU/Linux (LP64), using Linux 7.x and glibc 2.43. Support `x86_64-pc-linux-gnu` with x86-64-v1, x86-64-v2 and x86-64-v3, and `aarch64-linux-gnu` with armv8-a and armv9-a. Define `_GNU_SOURCE=1` before including system headers to enable public glibc APIs, including GNU extensions, Linux-specific interfaces, POSIX.1-2024 (`_POSIX_C_SOURCE=202405L`) and XSI (`_XOPEN_SOURCE=800`).
+Apply serious computer science and software engineering to build reliable, maintainable software in ISO/IEC 9899:2024 C (`-std=c23`). Compile with GCC. Use CMake for builds, CTest for automated tests and CPack for packages.
+
+Support only 64-bit little-endian GNU/Linux (LP64) with Linux 7.x and glibc 2.43. The supported targets are `x86_64-pc-linux-gnu` with x86-64-v1, x86-64-v2 and x86-64-v3, and `aarch64-linux-gnu` with armv8-a and armv9-a.
+
+Make full use of GNU/Linux and the public glibc API. The build defines `_GNU_SOURCE=1` to enable GNU extensions, Linux-specific interfaces, POSIX.1-2024 and XSI. Prefer existing libraries and higher-level APIs over custom code. Prefer library wrappers over direct system calls. Other platforms are outside the project scope.
 
 ## Target platform
 
-- OS: GNU/Linux
+- Operating system: GNU/Linux
 - Kernel: Linux 7.x
-- Triple: x86_64-pc-linux-gnu, aarch64-linux-gnu
-- Arch: x86_64, aarch64
-- Bits: 64-bit, LP64, little-endian
-- ISA: x86-64-v1, x86-64-v2, x86-64-v3, armv8-a, armv9-a
-- Libc: glibc 2.43
+- Target triples: x86_64-pc-linux-gnu, aarch64-linux-gnu
+- Architectures: x86_64, aarch64
+- Data layout: 64-bit, LP64, little-endian
+- Instruction sets: x86-64-v1, x86-64-v2, x86-64-v3, armv8-a, armv9-a
+- C library: glibc 2.43
 - Interfaces: GNU extensions, Linux-specific interfaces, Linux UAPI, POSIX.1-2024, XSI, ISO C23
 
 ## Language and warnings
@@ -18,9 +22,9 @@ Apply serious software engineering and serious computer science to build reliabl
 - `-std=c23`
 - `-Wall -Wextra -Wpedantic -pedantic-errors`
 
-## Feature-test macros
+## glibc API
 
-Defining `_GNU_SOURCE=1` enables the following feature-test macros in glibc 2.43:
+The build defines [`_GNU_SOURCE=1`](https://www.sourceware.org/glibc/manual/2.43/html_node/Feature-Test-Macros.html) for all C targets. In glibc 2.43, this enables GNU extensions and these feature-test macros:
 
 - `_ISOC95_SOURCE=1`
 - `_ISOC99_SOURCE=1`
@@ -55,19 +59,44 @@ Defining `_GNU_SOURCE=1` enables the following feature-test macros in glibc 2.43
 
 ## System libraries
 
+The devcontainer includes these packages:
+
 - libcurl: `libcurl4-openssl-dev`
 - json-c: `libjson-c-dev`
 - SQLite: `libsqlite3-dev`, `sqlite3`
 
-## GNU/Linux platform usage
+## Development environment
 
-Take full advantage of glibc and GNU/Linux on the supported 64-bit platforms. Portability to other systems is not a requirement and should not constrain the design.
+Run `devcontainer`, `docker` and `docker compose` on the host from the repository root. Start the environment with `make up`. The devcontainer uses `.devcontainer/docker-compose.yml` with these services:
 
-Choose interfaces and libraries to suit the task, drawing on GNU extensions, Linux features and system facilities exposed through files, devices and sockets. Prefer platform-specific capabilities when they offer a practical advantage, without adding complexity merely to use them.
+- `devcontainer`: main container for builds, tests and workspace commands
+- `wiremock`: sidecar service for HTTP tests
 
-Prefer existing libraries and system interfaces to custom implementations, and public library wrappers to direct system calls. Use lower-level interfaces or custom code when they better meet the requirements.
+Run workspace commands in the main container with `devcontainer exec`. Replace `COMMAND` and `ARG...` with an executable and its arguments:
+
+```sh
+devcontainer exec --workspace-folder . COMMAND ARG...
+```
+
+The command runs directly, without a shell. For shell syntax, call Bash explicitly:
+
+```sh
+devcontainer exec --workspace-folder . bash -c 'COMMAND ARG... | COMMAND ARG...'
+```
+
+Manage sidecars from the host with `docker compose`. Use `docker compose exec -T` to run commands inside them, including fixture and seed tools.
+
+## Quality gates
+
+Run `make fix` and then `make check` in the devcontainer. These commands are the final quality gate. Both must pass before the work is complete.
+
+Write automated tests for the software and run them through CTest.
+
+Run network tests in the devcontainer. Use WireMock for HTTP tests. Its address is in the `WIREMOCK_URL` environment variable. Tests that share a service or port must use the same CTest `RESOURCE_LOCK` value so they run one at a time. For WireMock, use the lock value `wiremock`.
 
 ## EditorConfig
+
+The repository uses these settings from `.editorconfig`:
 
 ```ini
 root = true
@@ -111,6 +140,8 @@ max_line_length = off
 
 ## Clang-Format
 
+C formatting uses these settings from `.clang-format`:
+
 ```yaml
 ---
 BasedOnStyle: LLVM
@@ -132,52 +163,52 @@ UseTab: Never
 
 ```text
 .
-├── AGENTS.md
-├── AUTHORS.md
-├── .clang-format
-├── CMakeLists.txt
-├── CMakePresets.json
-├── .devcontainer/
-│   ├── devcontainer.json
-│   ├── docker-compose.yml
-│   ├── Dockerfile
-│   └── .dockerignore
-├── .editorconfig
-├── .gitattributes
-├── .gitignore
-├── LICENSE
-├── Makefile
-├── .npmrc
-├── package.json
-├── package-lock.json
-├── prettier.config.js
-├── .prettierignore
-├── src/
-│   ├── CMakeLists.txt
-│   └── ...
-└── tests/
-    ├── CMakeLists.txt
-    └── ...
+|-- AGENTS.md
+|-- AUTHORS.md
+|-- .clang-format
+|-- CMakeLists.txt
+|-- CMakePresets.json
+|-- .devcontainer/
+|   |-- devcontainer.json
+|   |-- docker-compose.yml
+|   |-- Dockerfile
+|   `-- .dockerignore
+|-- .editorconfig
+|-- .gitattributes
+|-- .gitignore
+|-- LICENSE
+|-- Makefile
+|-- .npmrc
+|-- package.json
+|-- package-lock.json
+|-- prettier.config.js
+|-- .prettierignore
+|-- src/
+|   |-- CMakeLists.txt
+|   `-- ...
+`-- tests/
+    |-- CMakeLists.txt
+    `-- ...
 ```
 
 ## Makefile targets
 
-Run these targets with `make <target>`.
+Run `make <target>` from the repository root. The labels show the required environment: `[host]` on the host machine, `[devcontainer]` in the devcontainer, and `[interactive]` with terminal input and output.
 
 - `fix`: `prettier_fix` + `clang_format_fix` + `trimmer_fix`
 - `check` [devcontainer]: `doctor` + `lint` + `fanalyzer` + `test` + `valgrind` + `all` + `sanitize` + `audit`
 - `doctor`: `git_check` + `npm_config_check` + `npm_doctor` + `npm_check` + `toolchain_check`
 - `lint`: `prettier_check` + `clang_format_check` + `trimmer_check`
-- `test` [devcontainer]: configure, build and test via test workflow
-- `fanalyzer` [devcontainer]: configure, build and test via fanalyzer workflow
-- `coverage` [devcontainer]: run tests and report coverage for `src/`
-- `valgrind` [devcontainer]: configure, build and memcheck tests
-- `asan` [devcontainer]: configure, build and test via asan workflow
-- `ubsan` [devcontainer]: configure, build and test via ubsan workflow
-- `tsan` [devcontainer]: configure, build and test via tsan workflow
-- `lsan` [devcontainer]: configure, build and test via lsan workflow
+- `test` [devcontainer]: configure, build and run tests
+- `fanalyzer` [devcontainer]: configure and build with GCC static analysis, then run tests
+- `coverage` [devcontainer]: run tests and report code coverage for `src/`
+- `valgrind` [devcontainer]: configure, build and run tests with Valgrind
+- `asan` [devcontainer]: configure, build and run tests with AddressSanitizer
+- `ubsan` [devcontainer]: configure, build and run tests with UndefinedBehaviorSanitizer
+- `tsan` [devcontainer]: configure, build and run tests with ThreadSanitizer
+- `lsan` [devcontainer]: configure, build and run tests with LeakSanitizer
 - `sanitize` [devcontainer]: `asan` + `ubsan` + `tsan` + `lsan`
-- `native`: native release build
+- `native`: release build tuned for the current CPU
 - `release`: release build
 - `debug`: debug build
 - `linux_amd64_v1`: release build for x86-64-v1
@@ -186,88 +217,82 @@ Run these targets with `make <target>`.
 - `linux_arm64_armv8_a`: release build for armv8-a
 - `linux_arm64_armv9_a`: release build for armv9-a
 - `all`: `debug` + `native` + `release`
-- `dist_native`: native cpack tarball
-- `dist_debug`: debug cpack tarball
-- `dist_release`: release cpack tarball
-- `dist_linux_amd64_v1`: cpack tarball for x86-64-v1
-- `dist_linux_amd64_v2`: cpack tarball for x86-64-v2
-- `dist_linux_amd64_v3`: cpack tarball for x86-64-v3
-- `dist_linux_arm64_armv8_a`: cpack tarball for armv8-a
-- `dist_linux_arm64_armv9_a`: cpack tarball for armv9-a
+- `dist_native`: configure, build and package a release tuned for the current CPU
+- `dist_debug`: configure, build and package with the debug preset
+- `dist_release`: configure, build and package with the release preset
+- `dist_linux_amd64_v1`: configure, build and package for x86-64-v1
+- `dist_linux_amd64_v2`: configure, build and package for x86-64-v2
+- `dist_linux_amd64_v3`: configure, build and package for x86-64-v3
+- `dist_linux_arm64_armv8_a`: configure, build and package for armv8-a
+- `dist_linux_arm64_armv9_a`: configure, build and package for armv9-a
 - `dist`: `dist_native` + `dist_debug` + `dist_release`
-- `audit`: audit npm dependencies
-- `install`: install native release
-- `uninstall`: remove installed binary and documentation
-- `installcheck`: verify installed binary and license
+- `audit`: check npm dependencies for known security issues
+- `install`: build and install the native release
+- `uninstall`: remove files installed by the native build
+- `installcheck`: check that all files from the native install are present
 - `update`: `npm_config_check` + `npm_update`
 - `postcreate`: `deps_install` + `toolchain_check`
-- `up` [host]: check config and start devcontainer
-- `shell` [host] [interactive]: open shell in devcontainer via `up`
-- `stop` [host]: stop devcontainer
-- `down` [host]: remove compose services and networks
-- `clean`: remove out, dist and devcontainer tmp
+- `up` [host]: check configuration and start the devcontainer
+- `shell` [host] [interactive]: start the devcontainer and open a shell inside it
+- `stop` [host]: stop project containers
+- `down` [host]: remove project containers and networks
+- `clean`: remove `out/`, `dist/` and `.devcontainer/.tmp/`
 - `distclean`: `clean` + `deps_clean`
-- `rebuild` [host]: check config, drop containers and rebuild devcontainer
-- `nuke`: `distclean` + `prune`
-- `prune` [host]: remove containers, networks, volumes and images
+- `rebuild` [host]: check configuration, remove project containers and rebuild the devcontainer without cache
+- `nuke` [host]: `distclean` + `prune`
+- `prune` [host]: remove project containers, networks, volumes and service images
 - `deps_install`: install npm dependencies
-- `deps_clean`: remove node_modules
-- `trimmer_fix`: fix with trimmer
-- `trimmer_check`: check with trimmer
-- `prettier_fix`: fix with prettier
-- `prettier_check`: check with prettier
-- `clang_format_fix`: fix C sources with clang-format
-- `clang_format_check`: check C sources with clang-format
-- `npm_config_check`: verify npm config
-- `npm_doctor`: check npm connectivity and setup
-- `npm_check`: verify npm tree via `npm_config_check`
-- `npm_audit`: audit npm dependencies via `npm_config_check`
-- `npm_install`: install npm dependencies via `npm_config_check`
-- `npm_update`: clean and update npm dependencies via `npm_config_check`
-- `npm_clean`: remove node_modules
-- `git_check`: verify clean git tree
-- `toolchain_check`: print toolchain versions
-- `devcontainer_check` [host]: validate devcontainer config
-- `host_gate` [host]: fail inside container
-- `interactive_gate` [interactive]: fail without terminal
-- `devcontainer_gate` [devcontainer]: fail outside devcontainer
+- `deps_clean`: remove `node_modules/`
+- `trimmer_fix`: fix whitespace and line endings with Trimmer
+- `trimmer_check`: check whitespace and line endings with Trimmer
+- `prettier_fix`: format files with Prettier
+- `prettier_check`: check file formatting with Prettier
+- `clang_format_fix`: format C sources and headers with clang-format
+- `clang_format_check`: check C source and header formatting with clang-format
+- `npm_config_check`: check required npm settings
+- `npm_doctor`: check npm registry access, environment, permissions and cache
+- `npm_check`: check npm settings and the installed dependency tree
+- `npm_audit`: check npm settings and audit dependencies for known security issues
+- `npm_install`: check npm settings and install dependencies from `package-lock.json`
+- `npm_update`: check npm settings, remove `node_modules/` and update dependencies
+- `npm_clean`: remove `node_modules/`
+- `git_check`: check for merge conflicts, tracked files that match ignore rules, whitespace errors and Git repository errors
+- `toolchain_check`: print build and analysis tool versions
+- `devcontainer_check` [host]: check the devcontainer, Compose and Dockerfile configuration
+- `host_gate` [host]: fail inside a Docker container
+- `interactive_gate` [interactive]: fail unless both input and output use a terminal
+- `devcontainer_gate` [devcontainer]: fail outside a Docker container
 
 ## CMake workflow presets
 
-Run these workflows with `cmake --workflow --preset <name>`.
+Run `cmake --workflow --preset <name>` from the repository root. These workflows are defined in `CMakePresets.json`. Build each target on a machine with the same architecture.
 
-- `test`: configure, build and test with debug preset
-- `fanalyzer`: configure, build and test with fanalyzer preset
-- `asan`: configure, build and test with asan preset
-- `ubsan`: configure, build and test with ubsan preset
-- `tsan`: configure, build and test with tsan preset
-- `lsan`: configure, build and test with lsan preset
-- `valgrind`: configure and build with valgrind preset
-- `coverage`: configure, build and test with coverage preset
-- `build-debug`: configure and build with debug preset
+Package workflows create `.tar.gz` files in `dist/`.
+
+- `test`: configure and build with the debug preset, then run tests
+- `fanalyzer`: configure and build with GCC static analysis, then run tests
+- `asan`: configure, build and run tests with AddressSanitizer
+- `ubsan`: configure, build and run tests with UndefinedBehaviorSanitizer
+- `tsan`: configure, build and run tests with ThreadSanitizer
+- `lsan`: configure, build and run tests with LeakSanitizer
+- `valgrind`: configure and build for Valgrind
+- `coverage`: configure, build and run tests to collect code coverage data
+- `build-debug`: configure and build with the debug preset
 - `build-linux-amd64-v1`: configure and build for x86-64-v1
 - `build-linux-amd64-v2`: configure and build for x86-64-v2
 - `build-linux-amd64-v3`: configure and build for x86-64-v3
 - `build-linux-arm64-armv8-a`: configure and build for armv8-a
 - `build-linux-arm64-armv9-a`: configure and build for armv9-a
-- `build-native`: configure and build for native architecture
-- `build-release`: configure and build for release
+- `build-native`: configure and build a release tuned for the current CPU
+- `build-release`: configure and build with the release preset
 - `dist-linux-amd64-v1`: configure, build and package for x86-64-v1
 - `dist-linux-amd64-v2`: configure, build and package for x86-64-v2
 - `dist-linux-amd64-v3`: configure, build and package for x86-64-v3
 - `dist-linux-arm64-armv8-a`: configure, build and package for armv8-a
 - `dist-linux-arm64-armv9-a`: configure, build and package for armv9-a
-- `dist-native`: configure, build and package for native architecture
-- `dist-debug`: configure, build and package with debug preset
-- `dist-release`: configure, build and package for release
-
-## Quality gates
-
-Write tests for the code in `src/`, keep them in `tests/` and register them with CTest. Where dependency substitution or fault injection is needed, use `ld --wrap` in test builds.
-
-Use WireMock for HTTP testing, with its address supplied by `WIREMOCK_URL`. Tests sharing the service must set the CTest `RESOURCE_LOCK` property to `wiremock` to prevent concurrent tests from interfering with one another.
-
-Run `make fix` to apply the repository's formatting rules, then `make check` to verify the changes against its quality checks. Both must pass before the work is considered complete, so changes follow a consistent style and are checked for defects and regressions.
+- `dist-native`: configure, build and package a release tuned for the current CPU
+- `dist-debug`: configure, build and package with the debug preset
+- `dist-release`: configure, build and package with the release preset
 
 ## ISO/IEC 9899:2024
 
