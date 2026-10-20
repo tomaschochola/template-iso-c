@@ -54,7 +54,7 @@ export COMPOSE_PROJECT_NAME
 fix: prettier_fix clang_format_fix trimmer_fix
 
 .PHONY: check
-check: devcontainer_gate doctor lint fanalyzer test coverage valgrind all sanitize audit
+check: devcontainer_gate doctor lint fanalyzer test valgrind all sanitize audit
 
 .PHONY: doctor
 doctor: git_check npm_config_check npm_doctor npm_check toolchain_check

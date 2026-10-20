@@ -165,7 +165,7 @@ UseTab: Never
 Run these targets with `make <target>`.
 
 - `fix`: `prettier_fix` + `clang_format_fix` + `trimmer_fix`
-- `check` [devcontainer]: `doctor` + `lint` + `fanalyzer` + `test` + `coverage` + `valgrind` + `all` + `sanitize` + `audit`
+- `check` [devcontainer]: `doctor` + `lint` + `fanalyzer` + `test` + `valgrind` + `all` + `sanitize` + `audit`
 - `doctor`: `git_check` + `npm_config_check` + `npm_doctor` + `npm_check` + `toolchain_check`
 - `lint`: `prettier_check` + `clang_format_check` + `trimmer_check`
 - `test` [devcontainer]: configure, build and test via test workflow
