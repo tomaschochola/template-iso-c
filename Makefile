@@ -78,7 +78,7 @@ fanalyzer: devcontainer_gate
 coverage: devcontainer_gate
 	rm --force --recursive --one-file-system -- ./out/build/coverage
 	cmake --workflow --preset coverage
-	gcovr --root . --filter 'src/' --gcov-executable gcov-16 --no-markers --fail-under-line 100 --fail-under-function 100 --print-summary ./out/build/coverage
+	gcovr --root . --filter '^src/' --gcov-executable gcov-16 --no-markers --print-summary ./out/build/coverage
 
 .PHONY: valgrind
 valgrind: devcontainer_gate

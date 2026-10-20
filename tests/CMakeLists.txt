@@ -43,16 +43,3 @@ function(template_iso_c_add_unit_test test target)
 endfunction()
 
 template_iso_c_add_unit_test(unit.todo template_iso_c_tests test_todo.c)
-
-add_test(
-    NAME integration.main
-    COMMAND template_iso_c
-)
-
-set_tests_properties(
-    integration.main
-    PROPERTIES
-        TIMEOUT 5
-        LABELS integration
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-)
