@@ -19,7 +19,7 @@ endif()
 project(
     template_iso_c
     VERSION "${TEMPLATE_ISO_C_VERSION}"
-    DESCRIPTION "GNU/Linux GCC ISO C23 project template"
+    DESCRIPTION "ISO C23 application template with testing, static analysis, and sanitizers."
     LANGUAGES C
 )
 
