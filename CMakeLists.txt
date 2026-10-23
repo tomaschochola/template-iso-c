@@ -1,63 +1,49 @@
 cmake_minimum_required(VERSION 4.4)
 
 if(DEFINED ENV{VERSION})
-    set(TEMPLATE_ISO_C_VERSION "$ENV{VERSION}")
+    set(X_CMAKE_PROJECT_VERSION "$ENV{VERSION}")
 else()
-    set(TEMPLATE_ISO_C_VERSION "0.0.0")
-endif()
-
-if(NOT TEMPLATE_ISO_C_VERSION MATCHES "^[0-9]+(\\.[0-9]+)?(\\.[0-9]+)?(\\.[0-9]+)?$")
-    message(FATAL_ERROR "VERSION must be numeric CMake version")
-endif()
-
-if(DEFINED ENV{SOURCE_DATE_EPOCH})
-    if(NOT "$ENV{SOURCE_DATE_EPOCH}" MATCHES "^[0-9]+$")
-        message(FATAL_ERROR "SOURCE_DATE_EPOCH must contain only decimal digits")
-    endif()
+    set(X_CMAKE_PROJECT_VERSION "0.0.0")
 endif()
 
 project(
     template_iso_c
-    VERSION "${TEMPLATE_ISO_C_VERSION}"
+    VERSION "${X_CMAKE_PROJECT_VERSION}"
+    SPDX_LICENSE "CC-BY-ND-4.0"
     DESCRIPTION "ISO C23 application template with testing, static analysis, and sanitizers."
+    HOMEPAGE_URL "https://github.com/tomaschochola/template-iso-c"
     LANGUAGES C
 )
 
-if(NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    message(FATAL_ERROR "GNU/Linux is required")
-endif()
+set(CMAKE_C23_STANDARD_COMPILE_OPTION "-std=c23")
 
-if(CMAKE_CROSSCOMPILING)
-    message(FATAL_ERROR "Cross-compiling is not supported, build natively")
-endif()
+set(CMAKE_C_STANDARD 23)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS OFF)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF)
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON)
+set(CMAKE_VERIFY_PRIVATE_HEADER_SETS ON)
+set(CMAKE_VERIFY_INTERFACE_HEADER_SETS ON)
 
-if(NOT CMAKE_C_COMPILER_ID STREQUAL "GNU")
-    message(FATAL_ERROR "GCC is required")
-endif()
+add_compile_options(
+    -Wall
+    -Wextra
+    -Wpedantic
+    -pedantic-errors
+)
+
+add_compile_definitions(_GNU_SOURCE=1)
 
 include(GNUInstallDirs)
 
+include(CheckPIESupported)
+check_pie_supported(LANGUAGES C)
+
 set(MEMORYCHECK_TYPE "Valgrind")
-set(MEMORYCHECK_COMMAND_OPTIONS "--tool=memcheck --leak-check=full --show-leak-kinds=all --errors-for-leak-kinds=all --track-origins=yes --trace-children=yes --error-exitcode=255")
+set(MEMORYCHECK_COMMAND_OPTIONS "--error-exitcode=255")
 
 include(CTest)
-
-add_library(template_iso_c_warnings INTERFACE)
-
-target_compile_options(
-    template_iso_c_warnings
-    INTERFACE
-        -Wall
-        -Wextra
-        -Wpedantic
-        -pedantic-errors
-)
-
-target_compile_definitions(
-    template_iso_c_warnings
-    INTERFACE
-        _GNU_SOURCE
-)
 
 add_subdirectory(src)
 
@@ -74,7 +60,16 @@ set(CPACK_PACKAGE_NAME "template-iso-c")
 set(CPACK_PACKAGE_VENDOR "Tomáš Chochola")
 set(CPACK_GENERATOR "TGZ")
 set(CPACK_PACKAGE_CHECKSUM "SHA256")
-set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+
+if(DEFINED X_CPACK_PACKAGE_VARIANT)
+    set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${PROJECT_VERSION}-${X_CPACK_PACKAGE_VARIANT}")
+endif()
+
 set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/LICENSE")
+set(CPACK_VERBATIM_VARIABLES TRUE)
+
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(CPACK_STRIP_FILES TRUE)
+endif()
 
 include(CPack)

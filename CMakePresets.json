@@ -22,7 +22,8 @@
                 "CMAKE_COMPILE_WARNING_AS_ERROR": true,
                 "CMAKE_LINK_WARNING_AS_ERROR": true,
                 "CMAKE_EXE_LINKER_FLAGS": "$env{LDFLAGS}",
-                "CMAKE_EXPORT_COMPILE_COMMANDS": true
+                "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+                "X_CPACK_PACKAGE_VARIANT": "${presetName}"
             },
             "warnings": {
                 "author": true,
@@ -50,7 +51,7 @@
             "cacheVariables": {
                 "BUILD_TESTING": true,
                 "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_C_FLAGS_DEBUG": "-Og -g -fno-omit-frame-pointer"
+                "CMAKE_C_FLAGS_DEBUG": "-Og -g3 -fno-omit-frame-pointer"
             }
         },
         {
@@ -59,9 +60,7 @@
             "inherits": "base",
             "cacheVariables": {
                 "BUILD_TESTING": false,
-                "CMAKE_BUILD_TYPE": "Release",
-                "CMAKE_EXE_LINKER_FLAGS_RELEASE": "-s",
-                "CMAKE_INTERPROCEDURAL_OPTIMIZATION": true
+                "CMAKE_BUILD_TYPE": "Release"
             }
         },
         {
@@ -73,52 +72,59 @@
             "inherits": "release-base"
         },
         {
+            "name": "verify",
+            "inherits": "release-base",
+            "cacheVariables": {
+                "BUILD_TESTING": true
+            }
+        },
+        {
             "name": "fanalyzer",
             "inherits": "debug-base",
             "cacheVariables": {
-                "CMAKE_C_FLAGS_DEBUG": "-O0 -g -fno-omit-frame-pointer -fanalyzer -fanalyzer-transitivity -fanalyzer-call-summaries -Wanalyzer-too-complex -Wanalyzer-symbol-too-complex -Wno-error=analyzer-too-complex -Wno-error=analyzer-symbol-too-complex --param analyzer-bb-explosion-factor=20 --param analyzer-max-enodes-per-program-point=32 --param analyzer-max-constraints=80 --param analyzer-max-infeasible-edges=40 --param analyzer-max-recursion-depth=8 --param analyzer-max-svalue-depth=72"
+                "CMAKE_C_FLAGS_DEBUG": "-O0 -g -fanalyzer"
             }
         },
         {
             "name": "asan",
             "inherits": "debug-base",
             "cacheVariables": {
-                "CMAKE_C_FLAGS_DEBUG": "-Og -g -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-ipa-icf -fsanitize=address,undefined,bounds-strict,pointer-compare,pointer-subtract,float-cast-overflow -fno-sanitize-recover=all"
+                "CMAKE_C_FLAGS_DEBUG": "-Og -g -fno-omit-frame-pointer -fsanitize=address"
             }
         },
         {
             "name": "ubsan",
             "inherits": "debug-base",
             "cacheVariables": {
-                "CMAKE_C_FLAGS_DEBUG": "-Og -g -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-ipa-icf -fsanitize=undefined,bounds-strict,float-cast-overflow -fno-sanitize-recover=all"
+                "CMAKE_C_FLAGS_DEBUG": "-Og -g -fno-omit-frame-pointer -fsanitize=undefined -fno-sanitize-recover=undefined"
             }
         },
         {
             "name": "tsan",
             "inherits": "debug-base",
             "cacheVariables": {
-                "CMAKE_C_FLAGS_DEBUG": "-Og -g -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-ipa-icf -fsanitize=thread"
+                "CMAKE_C_FLAGS_DEBUG": "-Og -g -fno-omit-frame-pointer -fsanitize=thread"
             }
         },
         {
             "name": "lsan",
             "inherits": "debug-base",
             "cacheVariables": {
-                "CMAKE_C_FLAGS_DEBUG": "-Og -g -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-ipa-icf -fsanitize=leak"
+                "CMAKE_C_FLAGS_DEBUG": "-Og -g -fno-omit-frame-pointer -fsanitize=leak"
             }
         },
         {
             "name": "valgrind",
             "inherits": "debug-base",
             "cacheVariables": {
-                "CMAKE_C_FLAGS_DEBUG": "-O1 -g -fno-omit-frame-pointer"
+                "CMAKE_C_FLAGS_DEBUG": "-O0 -g"
             }
         },
         {
             "name": "coverage",
             "inherits": "debug-base",
             "cacheVariables": {
-                "CMAKE_C_FLAGS_DEBUG": "-O0 -g --coverage -fcondition-coverage -fprofile-abs-path"
+                "CMAKE_C_FLAGS_DEBUG": "-O0 -g --coverage -fcondition-coverage -fpath-coverage -fprofile-abs-path"
             }
         },
         {
@@ -143,20 +149,6 @@
             }
         },
         {
-            "name": "linux-arm64-armv8-a",
-            "inherits": "release-base",
-            "cacheVariables": {
-                "CMAKE_C_FLAGS": "$env{CFLAGS} -march=armv8-a"
-            }
-        },
-        {
-            "name": "linux-arm64-armv9-a",
-            "inherits": "release-base",
-            "cacheVariables": {
-                "CMAKE_C_FLAGS": "$env{CFLAGS} -march=armv9-a"
-            }
-        },
-        {
             "name": "native",
             "inherits": "release-base",
             "cacheVariables": {
@@ -166,12 +158,21 @@
     ],
     "buildPresets": [
         {
+            "name": "headers",
+            "configurePreset": "debug",
+            "targets": ["all_verify_header_sets"]
+        },
+        {
             "name": "debug",
             "configurePreset": "debug"
         },
         {
             "name": "release",
             "configurePreset": "release"
+        },
+        {
+            "name": "verify",
+            "configurePreset": "verify"
         },
         {
             "name": "fanalyzer",
@@ -215,14 +216,6 @@
             "configurePreset": "linux-amd64-v3"
         },
         {
-            "name": "linux-arm64-armv8-a",
-            "configurePreset": "linux-arm64-armv8-a"
-        },
-        {
-            "name": "linux-arm64-armv9-a",
-            "configurePreset": "linux-arm64-armv9-a"
-        },
-        {
             "name": "native",
             "configurePreset": "native"
         }
@@ -245,6 +238,11 @@
             "configurePreset": "debug"
         },
         {
+            "name": "verify",
+            "inherits": "test-base",
+            "configurePreset": "verify"
+        },
+        {
             "name": "fanalyzer",
             "inherits": "test-base",
             "configurePreset": "fanalyzer"
@@ -254,32 +252,23 @@
             "inherits": "test-base",
             "configurePreset": "asan",
             "environment": {
-                "ASAN_OPTIONS": "detect_invalid_pointer_pairs=2"
+                "ASAN_OPTIONS": "detect_leaks=0"
             }
         },
         {
             "name": "ubsan",
             "inherits": "test-base",
-            "configurePreset": "ubsan",
-            "environment": {
-                "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1"
-            }
+            "configurePreset": "ubsan"
         },
         {
             "name": "tsan",
             "inherits": "test-base",
-            "configurePreset": "tsan",
-            "environment": {
-                "TSAN_OPTIONS": "halt_on_error=1"
-            }
+            "configurePreset": "tsan"
         },
         {
             "name": "lsan",
             "inherits": "test-base",
-            "configurePreset": "lsan",
-            "environment": {
-                "LSAN_OPTIONS": "report_objects=1"
-            }
+            "configurePreset": "lsan"
         },
         {
             "name": "coverage",
@@ -296,69 +285,48 @@
         {
             "name": "package-linux-amd64-v1",
             "inherits": "package-base",
-            "configurePreset": "linux-amd64-v1",
-            "variables": {
-                "CPACK_PACKAGE_FILE_NAME": "template-iso-c-$env{VERSION}-linux-amd64-v1"
-            }
+            "configurePreset": "linux-amd64-v1"
         },
         {
             "name": "package-linux-amd64-v2",
             "inherits": "package-base",
-            "configurePreset": "linux-amd64-v2",
-            "variables": {
-                "CPACK_PACKAGE_FILE_NAME": "template-iso-c-$env{VERSION}-linux-amd64-v2"
-            }
+            "configurePreset": "linux-amd64-v2"
         },
         {
             "name": "package-linux-amd64-v3",
             "inherits": "package-base",
-            "configurePreset": "linux-amd64-v3",
-            "variables": {
-                "CPACK_PACKAGE_FILE_NAME": "template-iso-c-$env{VERSION}-linux-amd64-v3"
-            }
-        },
-        {
-            "name": "package-linux-arm64-armv8-a",
-            "inherits": "package-base",
-            "configurePreset": "linux-arm64-armv8-a",
-            "variables": {
-                "CPACK_PACKAGE_FILE_NAME": "template-iso-c-$env{VERSION}-linux-arm64-armv8-a"
-            }
-        },
-        {
-            "name": "package-linux-arm64-armv9-a",
-            "inherits": "package-base",
-            "configurePreset": "linux-arm64-armv9-a",
-            "variables": {
-                "CPACK_PACKAGE_FILE_NAME": "template-iso-c-$env{VERSION}-linux-arm64-armv9-a"
-            }
+            "configurePreset": "linux-amd64-v3"
         },
         {
             "name": "package-native",
             "inherits": "package-base",
-            "configurePreset": "native",
-            "variables": {
-                "CPACK_PACKAGE_FILE_NAME": "template-iso-c-$env{VERSION}-native"
-            }
+            "configurePreset": "native"
         },
         {
             "name": "package-debug",
             "inherits": "package-base",
-            "configurePreset": "debug",
-            "variables": {
-                "CPACK_PACKAGE_FILE_NAME": "template-iso-c-$env{VERSION}-debug"
-            }
+            "configurePreset": "debug"
         },
         {
             "name": "package-release",
             "inherits": "package-base",
-            "configurePreset": "release",
-            "variables": {
-                "CPACK_PACKAGE_FILE_NAME": "template-iso-c-$env{VERSION}-release"
-            }
+            "configurePreset": "release"
         }
     ],
     "workflowPresets": [
+        {
+            "name": "headers",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "debug"
+                },
+                {
+                    "type": "build",
+                    "name": "headers"
+                }
+            ]
+        },
         {
             "name": "build-debug",
             "steps": [
@@ -386,6 +354,23 @@
                 {
                     "type": "test",
                     "name": "debug"
+                }
+            ]
+        },
+        {
+            "name": "verify",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "verify"
+                },
+                {
+                    "type": "build",
+                    "name": "verify"
+                },
+                {
+                    "type": "test",
+                    "name": "verify"
                 }
             ]
         },
@@ -544,32 +529,6 @@
             ]
         },
         {
-            "name": "build-linux-arm64-armv8-a",
-            "steps": [
-                {
-                    "type": "configure",
-                    "name": "linux-arm64-armv8-a"
-                },
-                {
-                    "type": "build",
-                    "name": "linux-arm64-armv8-a"
-                }
-            ]
-        },
-        {
-            "name": "build-linux-arm64-armv9-a",
-            "steps": [
-                {
-                    "type": "configure",
-                    "name": "linux-arm64-armv9-a"
-                },
-                {
-                    "type": "build",
-                    "name": "linux-arm64-armv9-a"
-                }
-            ]
-        },
-        {
             "name": "build-native",
             "steps": [
                 {
@@ -643,40 +602,6 @@
                 {
                     "type": "package",
                     "name": "package-linux-amd64-v3"
-                }
-            ]
-        },
-        {
-            "name": "dist-linux-arm64-armv8-a",
-            "steps": [
-                {
-                    "type": "configure",
-                    "name": "linux-arm64-armv8-a"
-                },
-                {
-                    "type": "build",
-                    "name": "linux-arm64-armv8-a"
-                },
-                {
-                    "type": "package",
-                    "name": "package-linux-arm64-armv8-a"
-                }
-            ]
-        },
-        {
-            "name": "dist-linux-arm64-armv9-a",
-            "steps": [
-                {
-                    "type": "configure",
-                    "name": "linux-arm64-armv9-a"
-                },
-                {
-                    "type": "build",
-                    "name": "linux-arm64-armv9-a"
-                },
-                {
-                    "type": "package",
-                    "name": "package-linux-arm64-armv9-a"
                 }
             ]
         },

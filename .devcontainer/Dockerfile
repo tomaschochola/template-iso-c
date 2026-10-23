@@ -37,7 +37,7 @@ COPY --from=cmake /tmp/cmake.tgz /tmp/cmake.tgz
 
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get upgrade --yes --no-install-recommends \
-    && DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends ca-certificates clang-format curl gcc-16 gcovr gdb git libc6-dev libcurl4-openssl-dev libjson-c-dev libsqlite3-dev make ninja-build openssh-client python3 sqlite3 strace sudo valgrind \
+    && DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends ca-certificates clang-format gcc-16 gdb git libc6-dev make ninja-build openssh-client python3 strace sudo valgrind \
     && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-16 160 \
     && update-alternatives --install /usr/bin/cc cc /usr/bin/gcc-16 160 \
     && update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-16 160 \

@@ -54,7 +54,10 @@ export COMPOSE_PROJECT_NAME
 fix: prettier_fix clang_format_fix trimmer_fix
 
 .PHONY: check
-check: devcontainer_gate doctor lint fanalyzer test valgrind all sanitize audit
+check: devcontainer_gate doctor lint headers test all verify audit
+
+.PHONY: extended
+extended: check fanalyzer valgrind sanitize coverage
 
 .PHONY: doctor
 doctor: git_check npm_config_check npm_doctor npm_check toolchain_check
@@ -65,6 +68,14 @@ lint: prettier_check clang_format_check trimmer_check
 .PHONY: test
 test: devcontainer_gate
 	cmake --workflow --preset test
+
+.PHONY: verify
+verify: devcontainer_gate
+	cmake --workflow --preset verify
+
+.PHONY: headers
+headers: devcontainer_gate
+	cmake --workflow --preset headers
 
 .PHONY: debug
 debug:
@@ -78,7 +89,7 @@ fanalyzer: devcontainer_gate
 coverage: devcontainer_gate
 	rm --force --recursive --one-file-system -- ./out/build/coverage
 	cmake --workflow --preset coverage
-	gcovr --root . --filter '^src/' --gcov-executable gcov-16 --no-markers --print-summary ./out/build/coverage
+	find ./out/build/coverage/src -type f -name '*.gcno' -exec gcov-16 --branch-probabilities --conditions --prime-paths --function-summaries --no-output {} +
 
 .PHONY: valgrind
 valgrind: devcontainer_gate
@@ -130,14 +141,6 @@ linux_amd64_v2:
 linux_amd64_v3:
 	cmake --workflow --preset build-linux-amd64-v3
 
-.PHONY: linux_arm64_armv8_a
-linux_arm64_armv8_a:
-	cmake --workflow --preset build-linux-arm64-armv8-a
-
-.PHONY: linux_arm64_armv9_a
-linux_arm64_armv9_a:
-	cmake --workflow --preset build-linux-arm64-armv9-a
-
 .PHONY: all
 all: debug native release
 
@@ -164,14 +167,6 @@ dist_linux_amd64_v2:
 .PHONY: dist_linux_amd64_v3
 dist_linux_amd64_v3:
 	cmake --workflow --preset dist-linux-amd64-v3
-
-.PHONY: dist_linux_arm64_armv8_a
-dist_linux_arm64_armv8_a:
-	cmake --workflow --preset dist-linux-arm64-armv8-a
-
-.PHONY: dist_linux_arm64_armv9_a
-dist_linux_arm64_armv9_a:
-	cmake --workflow --preset dist-linux-arm64-armv9-a
 
 .PHONY: dist
 dist: dist_native dist_debug dist_release
@@ -329,7 +324,6 @@ toolchain_check:
 	ctest --version
 	valgrind --version
 	gcov --version
-	gcovr --version
 	clang-format --version
 
 .PHONY: devcontainer_check

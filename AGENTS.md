@@ -1,102 +1,84 @@
 # AGENTS.md
 
-Apply serious computer science and software engineering to build reliable, maintainable software in ISO/IEC 9899:2024 C (`-std=c23`). Compile with GCC. Use CMake for builds, CTest for automated tests and CPack for packages.
-
-Support only 64-bit little-endian GNU/Linux (LP64) with Linux 7.x and glibc 2.43. The supported targets are `x86_64-pc-linux-gnu` with x86-64-v1, x86-64-v2 and x86-64-v3, and `aarch64-linux-gnu` with armv8-a and armv9-a.
-
-Make full use of GNU/Linux and the public glibc API. The build defines `_GNU_SOURCE=1` to enable GNU extensions, Linux-specific interfaces, POSIX.1-2024 and XSI. Prefer existing libraries and higher-level APIs over custom code. Prefer library wrappers over direct system calls. Other platforms are outside the project scope.
-
 ## Target platform
 
 - Operating system: GNU/Linux
 - Kernel: Linux 7.x
-- Target triples: x86_64-pc-linux-gnu, aarch64-linux-gnu
-- Architectures: x86_64, aarch64
+- Target triple: x86_64-pc-linux-gnu
+- Architecture: x86_64 (amd64)
 - Data layout: 64-bit, LP64, little-endian
-- Instruction sets: x86-64-v1, x86-64-v2, x86-64-v3, armv8-a, armv9-a
+- Instruction sets: x86-64-v1, x86-64-v2, x86-64-v3
 - C library: glibc 2.43
 - Interfaces: GNU extensions, Linux-specific interfaces, Linux UAPI, POSIX.1-2024, XSI, ISO C23
 
+## Build tools
+
+- Compiler: GCC
+- Build system: CMake
+- Automated tests: CTest
+- Packaging: CPack
+
 ## Language and warnings
 
-- `-std=c23`
-- `-Wall -Wextra -Wpedantic -pedantic-errors`
+- Language: ISO/IEC 9899:2024 C (C23)
+- Standard: `-std=c23`
+- Warnings: `-Wall -Wextra -Wpedantic -pedantic-errors`
 
 ## glibc API
 
-The build defines [`_GNU_SOURCE=1`](https://www.sourceware.org/glibc/manual/2.43/html_node/Feature-Test-Macros.html) for all C targets. In glibc 2.43, this enables GNU extensions and these feature-test macros:
+The build defines [`_GNU_SOURCE=1`](https://www.sourceware.org/glibc/manual/2.43/html_node/Feature-Test-Macros.html) for all C targets, enabling these feature-test macros in glibc 2.43:
 
-- `_ISOC95_SOURCE=1`
-- `_ISOC99_SOURCE=1`
-- `_ISOC11_SOURCE=1`
-- `_ISOC23_SOURCE=1`
-- `_ISOC2Y_SOURCE=1`
-- `_POSIX_SOURCE=1`
-- `_POSIX_C_SOURCE=202405L`
-- `_XOPEN_SOURCE=800`
-- `_XOPEN_SOURCE_EXTENDED=1`
-- `_LARGEFILE_SOURCE=1`
-- `_LARGEFILE64_SOURCE=1`
-- `_DEFAULT_SOURCE=1`
-- `_ATFILE_SOURCE=1`
-- `_DYNAMIC_STACK_SIZE_SOURCE=1`
+```c
+#define _ISOC95_SOURCE 1
+#define _ISOC99_SOURCE 1
+#define _ISOC11_SOURCE 1
+#define _ISOC23_SOURCE 1
+#define _ISOC2Y_SOURCE 1
+#define _POSIX_SOURCE 1
+#define _POSIX_C_SOURCE 202405L
+#define _XOPEN_SOURCE 800
+#define _XOPEN_SOURCE_EXTENDED 1
+#define _LARGEFILE_SOURCE 1
+#define _LARGEFILE64_SOURCE 1
+#define _DEFAULT_SOURCE 1
+#define _ATFILE_SOURCE 1
+#define _DYNAMIC_STACK_SIZE_SOURCE 1
+```
 
 ## Toolchain versions
 
-- gcc 16.0.1
+- gcc 16.0
 - glibc 2.43
-- cmake 4.4.4
-- ninja 1.13.2
-- ctest 4.4.4
-- valgrind 3.26.0
-- cpack 4.4.4
-- gcov 16.0.1
-- gcovr 7.2
-- python3 3.14.4
-- clang-format 21.1.8
-- node 24.22.0
-- npm 11.19.1
-
-## System libraries
-
-The devcontainer includes these packages:
-
-- libcurl: `libcurl4-openssl-dev`
-- json-c: `libjson-c-dev`
-- SQLite: `libsqlite3-dev`, `sqlite3`
+- cmake 4.4
+- ninja 1.13
+- ctest 4.4
+- valgrind 3.26
+- cpack 4.4
+- gcov 16.0
+- python3 3.14
+- clang-format 21.1
+- node 24.22
+- npm 11.19
 
 ## Development environment
 
-Run `devcontainer`, `docker` and `docker compose` on the host from the repository root. Start the environment with `make up`. The devcontainer uses `.devcontainer/docker-compose.yml` with these services:
-
-- `devcontainer`: main container for builds, tests and workspace commands
-- `wiremock`: sidecar service for HTTP tests
-
-Run workspace commands in the main container with `devcontainer exec`. Replace `COMMAND` and `ARG...` with an executable and its arguments:
+The development environment is configured in `.devcontainer/`. Manage it from the repository root on the host using the `devcontainer`, `docker` and `docker compose` CLIs.
 
 ```sh
+# start the development environment
+make up
+
+# run a workspace command
 devcontainer exec --workspace-folder . COMMAND ARG...
-```
 
-The command runs directly, without a shell. For shell syntax, call Bash explicitly:
-
-```sh
+# run a shell command
 devcontainer exec --workspace-folder . bash -c 'COMMAND ARG... | COMMAND ARG...'
+
+# run a sidecar command
+docker compose -f .devcontainer/docker-compose.yml exec -T SERVICE COMMAND ARG...
 ```
-
-Manage sidecars from the host with `docker compose`. Use `docker compose exec -T` to run commands inside them, including fixture and seed tools.
-
-## Quality gates
-
-Run `make fix` and then `make check` in the devcontainer. These commands are the final quality gate. Both must pass before the work is complete.
-
-Write automated tests for the software and run them through CTest.
-
-Run network tests in the devcontainer. Use WireMock for HTTP tests. Its address is in the `WIREMOCK_URL` environment variable. Tests that share a service or port must use the same CTest `RESOURCE_LOCK` value so they run one at a time. For WireMock, use the lock value `wiremock`.
 
 ## EditorConfig
-
-The repository uses these settings from `.editorconfig`:
 
 ```ini
 root = true
@@ -140,22 +122,15 @@ max_line_length = off
 
 ## Clang-Format
 
-C formatting uses these settings from `.clang-format`:
-
 ```yaml
 ---
 BasedOnStyle: LLVM
-Standard: Latest
 ColumnLimit: 200
 IndentWidth: 4
-ContinuationIndentWidth: 4
 BreakBeforeBraces: Linux
 AllowShortFunctionsOnASingleLine: None
-MaxEmptyLinesToKeep: 1
-SortIncludes: true
 InsertNewlineAtEOF: true
 LineEnding: LF
-UseTab: Never
 ...
 ```
 
@@ -193,907 +168,71 @@ UseTab: Never
 
 ## Makefile targets
 
-Run `make <target>` from the repository root. The labels show the required environment: `[host]` on the host machine, `[devcontainer]` in the devcontainer, and `[interactive]` with terminal input and output.
-
+- `never`: Require an explicit target.
 - `fix`: `prettier_fix` + `clang_format_fix` + `trimmer_fix`
-- `check` [devcontainer]: `doctor` + `lint` + `fanalyzer` + `test` + `valgrind` + `all` + `sanitize` + `audit`
+- `check`: `devcontainer_gate` + `doctor` + `lint` + `headers` + `test` + `all` + `verify` + `audit`
+- `extended`: `check` + `fanalyzer` + `valgrind` + `sanitize` + `coverage`
 - `doctor`: `git_check` + `npm_config_check` + `npm_doctor` + `npm_check` + `toolchain_check`
 - `lint`: `prettier_check` + `clang_format_check` + `trimmer_check`
-- `test` [devcontainer]: configure, build and run tests
-- `fanalyzer` [devcontainer]: configure and build with GCC static analysis, then run tests
-- `coverage` [devcontainer]: run tests and report code coverage for `src/`
-- `valgrind` [devcontainer]: configure, build and run tests with Valgrind
-- `asan` [devcontainer]: configure, build and run tests with AddressSanitizer
-- `ubsan` [devcontainer]: configure, build and run tests with UndefinedBehaviorSanitizer
-- `tsan` [devcontainer]: configure, build and run tests with ThreadSanitizer
-- `lsan` [devcontainer]: configure, build and run tests with LeakSanitizer
-- `sanitize` [devcontainer]: `asan` + `ubsan` + `tsan` + `lsan`
-- `native`: release build tuned for the current CPU
-- `release`: release build
-- `debug`: debug build
-- `linux_amd64_v1`: release build for x86-64-v1
-- `linux_amd64_v2`: release build for x86-64-v2
-- `linux_amd64_v3`: release build for x86-64-v3
-- `linux_arm64_armv8_a`: release build for armv8-a
-- `linux_arm64_armv9_a`: release build for armv9-a
-- `all`: `debug` + `native` + `release`
-- `dist_native`: configure, build and package a release tuned for the current CPU
-- `dist_debug`: configure, build and package with the debug preset
-- `dist_release`: configure, build and package with the release preset
-- `dist_linux_amd64_v1`: configure, build and package for x86-64-v1
-- `dist_linux_amd64_v2`: configure, build and package for x86-64-v2
-- `dist_linux_amd64_v3`: configure, build and package for x86-64-v3
-- `dist_linux_arm64_armv8_a`: configure, build and package for armv8-a
-- `dist_linux_arm64_armv9_a`: configure, build and package for armv9-a
-- `dist`: `dist_native` + `dist_debug` + `dist_release`
-- `audit`: check npm dependencies for known security issues
-- `install`: build and install the native release
-- `uninstall`: remove files installed by the native build
-- `installcheck`: check that all files from the native install are present
+- `test`: `devcontainer_gate` — Run tests in a debug build.
+- `verify`: `devcontainer_gate` — Run tests in a release build.
+- `headers`: `devcontainer_gate` — Check standalone header compilation.
+- `debug`: Build the debug application.
+- `fanalyzer`: `devcontainer_gate` — Analyze code with GCC.
+- `coverage`: `devcontainer_gate` — Measure and report test coverage.
+- `valgrind`: `devcontainer_gate` — Run tests with Valgrind.
+- `audit`: `npm_audit`
 - `update`: `npm_config_check` + `npm_update`
+- `asan`: `devcontainer_gate` — Run tests with AddressSanitizer.
+- `ubsan`: `devcontainer_gate` — Run tests with UndefinedBehaviorSanitizer.
+- `tsan`: `devcontainer_gate` — Run tests with ThreadSanitizer.
+- `lsan`: `devcontainer_gate` — Run tests with LeakSanitizer.
+- `sanitize`: `asan` + `ubsan` + `tsan` + `lsan`
+- `native`: Build the application for the current CPU.
+- `release`: Build the release application.
+- `linux_amd64_v1`: Build the application for x86-64-v1.
+- `linux_amd64_v2`: Build the application for x86-64-v2.
+- `linux_amd64_v3`: Build the application for x86-64-v3.
+- `all`: `debug` + `native` + `release`
+- `dist_native`: Package the application for the current CPU.
+- `dist_debug`: Package the debug application.
+- `dist_release`: Package the release application.
+- `dist_linux_amd64_v1`: Package the application for x86-64-v1.
+- `dist_linux_amd64_v2`: Package the application for x86-64-v2.
+- `dist_linux_amd64_v3`: Package the application for x86-64-v3.
+- `dist`: `dist_native` + `dist_debug` + `dist_release`
+- `install`: Install the application.
+- `uninstall`: Uninstall the application.
+- `installcheck`: Check the application installation.
 - `postcreate`: `deps_install` + `toolchain_check`
-- `up` [host]: check configuration and start the devcontainer
-- `shell` [host] [interactive]: start the devcontainer and open a shell inside it
-- `stop` [host]: stop project containers
-- `down` [host]: remove project containers and networks
-- `clean`: remove `out/`, `dist/` and `.devcontainer/.tmp/`
+- `up`: `host_gate` + `devcontainer_check` — Start the development environment.
+- `shell`: `interactive_gate` + `host_gate` + `up` — Open a shell in the development environment.
+- `stop`: `host_gate` — Stop the development environment.
+- `down`: `host_gate` — Remove the development environment.
+- `rebuild`: `host_gate` + `devcontainer_check` + `down` — Rebuild the development environment.
+- `nuke`: `distclean` + `prune`
+- `prune`: `host_gate` — Remove project container resources.
+- `clean`: Remove generated project files.
 - `distclean`: `clean` + `deps_clean`
-- `rebuild` [host]: check configuration, remove project containers and rebuild the devcontainer without cache
-- `nuke` [host]: `distclean` + `prune`
-- `prune` [host]: remove project containers, networks, volumes and locally built images; keep shared registry images
-- `deps_install`: install npm dependencies
-- `deps_clean`: remove `node_modules/`
-- `trimmer_fix`: fix whitespace and line endings with Trimmer
-- `trimmer_check`: check whitespace and line endings with Trimmer
-- `prettier_fix`: format files with Prettier
-- `prettier_check`: check file formatting with Prettier
-- `clang_format_fix`: format C sources and headers with clang-format
-- `clang_format_check`: check C source and header formatting with clang-format
-- `npm_config_check`: check required npm settings
-- `npm_doctor`: check npm registry access, environment, permissions and cache
-- `npm_check`: check npm settings and the installed dependency tree
-- `npm_audit`: check npm settings and audit dependencies for known security issues
-- `npm_install`: check npm settings and install dependencies from `package-lock.json`
-- `npm_update`: check npm settings, remove `node_modules/` and update dependencies
-- `npm_clean`: remove `node_modules/`
-- `git_check`: check for merge conflicts, tracked files that match ignore rules, whitespace errors and Git repository errors
-- `toolchain_check`: print build and analysis tool versions
-- `devcontainer_check` [host]: check the devcontainer, Compose and Dockerfile configuration
-- `host_gate` [host]: fail inside a Docker container
-- `interactive_gate` [interactive]: fail unless both input and output use a terminal
-- `devcontainer_gate` [devcontainer]: fail outside a Docker container
-
-## CMake workflow presets
-
-Run `cmake --workflow --preset <name>` from the repository root. These workflows are defined in `CMakePresets.json`. Build each target on a machine with the same architecture.
-
-Package workflows create `.tar.gz` files in `dist/`.
-
-- `test`: configure and build with the debug preset, then run tests
-- `fanalyzer`: configure and build with GCC static analysis, then run tests
-- `asan`: configure, build and run tests with AddressSanitizer
-- `ubsan`: configure, build and run tests with UndefinedBehaviorSanitizer
-- `tsan`: configure, build and run tests with ThreadSanitizer
-- `lsan`: configure, build and run tests with LeakSanitizer
-- `valgrind`: configure and build for Valgrind
-- `coverage`: configure, build and run tests to collect code coverage data
-- `build-debug`: configure and build with the debug preset
-- `build-linux-amd64-v1`: configure and build for x86-64-v1
-- `build-linux-amd64-v2`: configure and build for x86-64-v2
-- `build-linux-amd64-v3`: configure and build for x86-64-v3
-- `build-linux-arm64-armv8-a`: configure and build for armv8-a
-- `build-linux-arm64-armv9-a`: configure and build for armv9-a
-- `build-native`: configure and build a release tuned for the current CPU
-- `build-release`: configure and build with the release preset
-- `dist-linux-amd64-v1`: configure, build and package for x86-64-v1
-- `dist-linux-amd64-v2`: configure, build and package for x86-64-v2
-- `dist-linux-amd64-v3`: configure, build and package for x86-64-v3
-- `dist-linux-arm64-armv8-a`: configure, build and package for armv8-a
-- `dist-linux-arm64-armv9-a`: configure, build and package for armv9-a
-- `dist-native`: configure, build and package a release tuned for the current CPU
-- `dist-debug`: configure, build and package with the debug preset
-- `dist-release`: configure, build and package with the release preset
-
-## ISO/IEC 9899:2024
-
-### Language syntax
-
-```text
-token:
-	keyword
-	identifier
-	constant
-	string-literal
-	punctuator
-preprocessing-token:
-	header-name
-	identifier
-	pp-number
-	character-constant
-	string-literal
-	punctuator
-	each universal character name that cannot be one of the above
-	each non-white-space character that cannot be one of the above
-keyword: one of
-	alignas do int struct while
-	alignof double long switch _Atomic
-	auto else nullptr thread_local _BitInt
-	bool enum register true _Complex
-	break extern restrict typedef _Decimal128
-	case false return typeof _Decimal32
-	char float short typeof_unqual _Decimal64
-	const for signed union _Generic
-	constexpr goto sizeof unsigned _Imaginary
-	continue if static void _Noreturn
-	default inline static_assert volatile
-identifier:
-	identifier-start
-	identifier identifier-continue
-identifier-start:
-	nondigit
-	XID_Start character
-	universal character name of class XID_Start
-identifier-continue:
-	digit
-	nondigit
-	XID_Continue character
-	universal character name of class XID_Continue
-nondigit: one of
-	_ a b c d e f g h i j k l m
-	n o p q r s t u v w x y z
-	A B C D E F G H I J K L M
-	N O P Q R S T U V W X Y Z
-digit: one of
-	0 1 2 3 4 5 6 7 8 9
-universal-character-name:
-	\u hex-quad
-	\U hex-quad hex-quad
-hex-quad:
-	hexadecimal-digit hexadecimal-digit hexadecimal-digit hexadecimal-digit
-constant:
-	integer-constant
-	floating-constant
-	enumeration-constant
-	character-constant
-	predefined-constant
-integer-constant:
-	decimal-constant integer-suffixopt
-	octal-constant integer-suffixopt
-	hexadecimal-constant integer-suffixopt
-	binary-constant integer-suffixopt
-decimal-constant:
-	nonzero-digit
-	decimal-constant ’opt digit
-octal-constant:
-	0
-	octal-constant ’opt octal-digit
-hexadecimal-constant:
-	hexadecimal-prefix hexadecimal-digit-sequence
-binary-constant:
-	binary-prefix binary-digit
-	binary-constant ’opt binary-digit
-hexadecimal-prefix: one of
-	0x 0X
-binary-prefix: one of
-	0b 0B
-nonzero-digit: one of
-	1 2 3 4 5 6 7 8 9
-octal-digit: one of
-	0 1 2 3 4 5 6 7
-hexadecimal-digit-sequence:
-	hexadecimal-digit
-	hexadecimal-digit-sequence ’opt hexadecimal-digit
-hexadecimal-digit: one of
-	0 1 2 3 4 5 6 7 8 9
-	a b c d e f
-	A B C D E F
-binary-digit: one of
-	0 1
-integer-suffix:
-	unsigned-suffix long-suffixopt
-	unsigned-suffix long-long-suffix
-	unsigned-suffix bit-precise-int-suffix
-	long-suffix unsigned-suffixopt
-	long-long-suffix unsigned-suffixopt
-	bit-precise-int-suffix unsigned-suffixopt
-bit-precise-int-suffix: one of
-	wb WB
-unsigned-suffix: one of
-	u U
-long-suffix: one of
-	l L
-long-long-suffix: one of
-	ll LL
-floating-constant:
-	decimal-floating-constant
-	hexadecimal-floating-constant
-decimal-floating-constant:
-	fractional-constant exponent-partopt floating-suffixopt
-	digit-sequence exponent-part floating-suffixopt
-hexadecimal-floating-constant:
-	hexadecimal-prefix hexadecimal-fractional-constant binary-exponent-part floating-suffixopt
-	hexadecimal-prefix hexadecimal-digit-sequence binary-exponent-part floating-suffixopt
-fractional-constant:
-	digit-sequenceopt . digit-sequence
-	digit-sequence .
-exponent-part:
-	e signopt digit-sequence
-	E signopt digit-sequence
-sign: one of
-	+ -
-digit-sequence:
-	digit
-	digit-sequence ’opt digit
-hexadecimal-fractional-constant:
-	hexadecimal-digit-sequenceopt . hexadecimal-digit-sequence
-	hexadecimal-digit-sequence .
-binary-exponent-part:
-	p signopt digit-sequence
-	P signopt digit-sequence
-floating-suffix: one of
-	f l F L df dd dl DF DD DL
-enumeration-constant:
-	identifier
-character-constant:
-	encoding-prefixopt ’ c-char-sequence ’
-encoding-prefix: one of
-	u8 u U L
-c-char-sequence:
-	c-char
-	c-char-sequence c-char
-c-char:
-	any member of the source character set except the single-quote ’, backslash \, or new-line character
-	escape-sequence
-escape-sequence:
-	simple-escape-sequence
-	octal-escape-sequence
-	hexadecimal-escape-sequence
-	universal-character-name
-simple-escape-sequence: one of
-	\’ \" \? \\
-	\a \b \f \n \r \t \v
-octal-escape-sequence:
-	\ octal-digit
-	\ octal-digit octal-digit
-	\ octal-digit octal-digit octal-digit
-hexadecimal-escape-sequence:
-	\x hexadecimal-digit
-	hexadecimal-escape-sequence hexadecimal-digit
-predefined-constant:
-	false
-	true
-	nullptr
-string-literal:
-	encoding-prefixopt " s-char-sequenceopt "
-s-char-sequence:
-	s-char
-	s-char-sequence s-char
-s-char:
-	any member of the source character set except the double-quote ", backslash \, or new-line character
-	escape-sequence
-punctuator: one of
-	[ ] ( ) { } . ->
-	++ -- & * + - ~ !
-	/ % << >> < > <= >= == != ^ | && ||
-	? : :: ; ...
-	= *= /= %= += -= <<= >>= &= ^= |=
-	, # ##
-	<: :> <% %> %: %:%:
-header-name:
-	< h-char-sequence >
-	" q-char-sequence "
-h-char-sequence:
-	h-char
-	h-char-sequence h-char
-h-char:
-	any member of the source character set except the new-line character and >
-q-char-sequence:
-	q-char
-	q-char-sequence q-char
-q-char:
-	any member of the source character set except the new-line character and "
-pp-number:
-	digit
-	. digit
-	pp-number identifier-continue
-	pp-number ’ digit
-	pp-number ’ nondigit
-	pp-number e sign
-	pp-number E sign
-	pp-number p sign
-	pp-number P sign
-	pp-number .
-primary-expression:
-	identifier
-	constant
-	string-literal
-	( expression )
-	generic-selection
-generic-selection:
-	_Generic ( assignment-expression , generic-assoc-list )
-generic-assoc-list:
-	generic-association
-	generic-assoc-list , generic-association
-generic-association:
-	type-name : assignment-expression
-	default : assignment-expression
-postfix-expression:
-	primary-expression
-	postfix-expression [ expression ]
-	postfix-expression ( argument-expression-listopt )
-	postfix-expression . identifier
-	postfix-expression -> identifier
-	postfix-expression ++
-	postfix-expression --
-	compound-literal
-argument-expression-list:
-	assignment-expression
-	argument-expression-list , assignment-expression
-compound-literal:
-	( storage-class-specifiersopt type-name ) braced-initializer
-storage-class-specifiers:
-	storage-class-specifier
-	storage-class-specifiers storage-class-specifier
-unary-expression:
-	postfix-expression
-	++ unary-expression
-	-- unary-expression
-	unary-operator cast-expression
-	sizeof unary-expression
-	sizeof ( type-name )
-	alignof ( type-name )
-unary-operator: one of
-	& * + - ~ !
-cast-expression:
-	unary-expression
-	( type-name ) cast-expression
-multiplicative-expression:
-	cast-expression
-	multiplicative-expression * cast-expression
-	multiplicative-expression / cast-expression
-	multiplicative-expression % cast-expression
-additive-expression:
-	multiplicative-expression
-	additive-expression + multiplicative-expression
-	additive-expression - multiplicative-expression
-shift-expression:
-	additive-expression
-	shift-expression << additive-expression
-	shift-expression >> additive-expression
-relational-expression:
-	shift-expression
-	relational-expression < shift-expression
-	relational-expression > shift-expression
-	relational-expression <= shift-expression
-	relational-expression >= shift-expression
-equality-expression:
-	relational-expression
-	equality-expression == relational-expression
-	equality-expression != relational-expression
-AND-expression:
-	equality-expression
-	AND-expression & equality-expression
-exclusive-OR-expression:
-	AND-expression
-	exclusive-OR-expression ^ AND-expression
-inclusive-OR-expression:
-	exclusive-OR-expression
-	inclusive-OR-expression | exclusive-OR-expression
-logical-AND-expression:
-	inclusive-OR-expression
-	logical-AND-expression && inclusive-OR-expression
-logical-OR-expression:
-	logical-AND-expression
-	logical-OR-expression || logical-AND-expression
-conditional-expression:
-	logical-OR-expression
-	logical-OR-expression ? expression : conditional-expression
-assignment-expression:
-	conditional-expression
-	unary-expression assignment-operator assignment-expression
-assignment-operator: one of
-	= *= /= %= += -= <<= >>= &= ^= |=
-expression:
-	assignment-expression
-	expression , assignment-expression
-constant-expression:
-	conditional-expression
-declaration:
-	declaration-specifiers init-declarator-listopt ;
-	attribute-specifier-sequence declaration-specifiers init-declarator-list ;
-	static_assert-declaration
-	attribute-declaration
-declaration-specifiers:
-	declaration-specifier attribute-specifier-sequenceopt
-	declaration-specifier declaration-specifiers
-declaration-specifier:
-	storage-class-specifier
-	type-specifier-qualifier
-	function-specifier
-init-declarator-list:
-	init-declarator
-	init-declarator-list , init-declarator
-init-declarator:
-	declarator
-	declarator = initializer
-attribute-declaration:
-	attribute-specifier-sequence ;
-storage-class-specifier:
-	auto
-	constexpr
-	extern
-	register
-	static
-	thread_local
-	typedef
-type-specifier:
-	void
-	char
-	short
-	int
-	long
-	float
-	double
-	signed
-	unsigned
-	_BitInt ( constant-expression )
-	bool
-	_Complex
-	_Decimal32
-	_Decimal64
-	_Decimal128
-	atomic-type-specifier
-	struct-or-union-specifier
-	enum-specifier
-	typedef-name
-	typeof-specifier
-struct-or-union-specifier:
-	struct-or-union attribute-specifier-sequenceopt identifieropt { member-declaration-list }
-	struct-or-union attribute-specifier-sequenceopt identifier
-struct-or-union:
-	struct
-	union
-member-declaration-list:
-	member-declaration
-	member-declaration-list member-declaration
-member-declaration:
-	attribute-specifier-sequenceopt specifier-qualifier-list member-declarator-listopt ;
-	static_assert-declaration
-specifier-qualifier-list:
-	type-specifier-qualifier attribute-specifier-sequenceopt
-	type-specifier-qualifier specifier-qualifier-list
-type-specifier-qualifier:
-	type-specifier
-	type-qualifier
-	alignment-specifier
-member-declarator-list:
-	member-declarator
-	member-declarator-list , member-declarator
-member-declarator:
-	declarator
-	declaratoropt : constant-expression
-enum-specifier:
-	enum attribute-specifier-sequenceopt identifieropt enum-type-specifieropt { enumerator-list }
-	enum attribute-specifier-sequenceopt identifieropt enum-type-specifieropt { enumerator-list , }
-	enum identifier enum-type-specifieropt
-enumerator-list:
-	enumerator
-	enumerator-list , enumerator
-enumerator:
-	enumeration-constant attribute-specifier-sequenceopt
-	enumeration-constant attribute-specifier-sequenceopt = constant-expression
-enum-type-specifier:
-	: specifier-qualifier-list
-atomic-type-specifier:
-	_Atomic ( type-name )
-typeof-specifier:
-	typeof ( typeof-specifier-argument )
-	typeof_unqual ( typeof-specifier-argument )
-typeof-specifier-argument:
-	expression
-	type-name
-type-qualifier:
-	const
-	restrict
-	volatile
-	_Atomic
-function-specifier:
-	inline
-	_Noreturn
-alignment-specifier:
-	alignas ( type-name )
-	alignas ( constant-expression )
-declarator:
-	pointeropt direct-declarator
-direct-declarator:
-	identifier attribute-specifier-sequenceopt
-	( declarator )
-	array-declarator attribute-specifier-sequenceopt
-	function-declarator attribute-specifier-sequenceopt
-array-declarator:
-	direct-declarator [ type-qualifier-listopt assignment-expressionopt ]
-	direct-declarator [ static type-qualifier-listopt assignment-expression ]
-	direct-declarator [ type-qualifier-list static assignment-expression ]
-	direct-declarator [ type-qualifier-listopt * ]
-function-declarator:
-	direct-declarator ( parameter-type-listopt )
-pointer:
-	* attribute-specifier-sequenceopt type-qualifier-listopt
-	* attribute-specifier-sequenceopt type-qualifier-listopt pointer
-type-qualifier-list:
-	type-qualifier
-	type-qualifier-list type-qualifier
-parameter-type-list:
-	parameter-list
-	parameter-list , ...
-	...
-parameter-list:
-	parameter-declaration
-	parameter-list , parameter-declaration
-parameter-declaration:
-	attribute-specifier-sequenceopt declaration-specifiers declarator
-	attribute-specifier-sequenceopt declaration-specifiers abstract-declaratoropt
-type-name:
-	specifier-qualifier-list abstract-declaratoropt
-abstract-declarator:
-	pointer
-	pointeropt direct-abstract-declarator
-direct-abstract-declarator:
-	( abstract-declarator )
-	array-abstract-declarator attribute-specifier-sequenceopt
-	function-abstract-declarator attribute-specifier-sequenceopt
-array-abstract-declarator:
-	direct-abstract-declaratoropt [ type-qualifier-listopt assignment-expressionopt ]
-	direct-abstract-declaratoropt [ static type-qualifier-listopt assignment-expression ]
-	direct-abstract-declaratoropt [ type-qualifier-list static assignment-expression ]
-	direct-abstract-declaratoropt [ * ]
-function-abstract-declarator:
-	direct-abstract-declaratoropt ( parameter-type-listopt )
-typedef-name:
-	identifier
-braced-initializer:
-	{ }
-	{ initializer-list }
-	{ initializer-list , }
-initializer:
-	assignment-expression
-	braced-initializer
-initializer-list:
-	designationopt initializer
-	initializer-list , designationopt initializer
-designation:
-	designator-list =
-designator-list:
-	designator
-	designator-list designator
-designator:
-	[ constant-expression ]
-	. identifier
-static_assert-declaration:
-	static_assert ( constant-expression , string-literal ) ;
-	static_assert ( constant-expression ) ;
-attribute-specifier-sequence:
-	attribute-specifier-sequenceopt attribute-specifier
-attribute-specifier:
-	[ [ attribute-list ] ]
-attribute-list:
-	attributeopt
-	attribute-list , attributeopt
-attribute:
-	attribute-token attribute-argument-clauseopt
-attribute-token:
-	standard-attribute
-	attribute-prefixed-token
-standard-attribute:
-	identifier
-attribute-prefixed-token:
-	attribute-prefix :: identifier
-attribute-prefix:
-	identifier
-attribute-argument-clause:
-	( balanced-token-sequenceopt )
-balanced-token-sequence:
-	balanced-token
-	balanced-token-sequence balanced-token
-balanced-token:
-	( balanced-token-sequenceopt )
-	[ balanced-token-sequenceopt ]
-	{ balanced-token-sequenceopt }
-	any token other than a parenthesis, a bracket, or a brace
-statement:
-	labeled-statement
-	unlabeled-statement
-unlabeled-statement:
-	expression-statement
-	attribute-specifier-sequenceopt primary-block
-	attribute-specifier-sequenceopt jump-statement
-primary-block:
-	compound-statement
-	selection-statement
-	iteration-statement
-secondary-block:
-	statement
-label:
-	attribute-specifier-sequenceopt identifier :
-	attribute-specifier-sequenceopt case constant-expression :
-	attribute-specifier-sequenceopt default :
-labeled-statement:
-	label statement
-compound-statement:
-	{ block-item-listopt }
-block-item-list:
-	block-item
-	block-item-list block-item
-block-item:
-	declaration
-	unlabeled-statement
-	label
-expression-statement:
-	expressionopt ;
-	attribute-specifier-sequence expression ;
-selection-statement:
-	if ( expression ) secondary-block
-	if ( expression ) secondary-block else secondary-block
-	switch ( expression ) secondary-block
-iteration-statement:
-	while ( expression ) secondary-block
-	do secondary-block while ( expression ) ;
-	for ( expressionopt ; expressionopt ; expressionopt ) secondary-block
-	for ( declaration expressionopt ; expressionopt ) secondary-block
-jump-statement:
-	goto identifier ;
-	continue ;
-	break ;
-	return expressionopt ;
-translation-unit:
-	external-declaration
-	translation-unit external-declaration
-external-declaration:
-	function-definition
-	declaration
-function-definition:
-	attribute-specifier-sequenceopt declaration-specifiers declarator function-body
-function-body:
-	compound-statement
-preprocessing-file:
-	groupopt
-group:
-	group-part
-	group group-part
-group-part:
-	if-section
-	control-line
-	text-line
-	# non-directive
-if-section:
-	if-group elif-groupsopt else-groupopt endif-line
-if-group:
-	# if constant-expression new-line groupopt
-	# ifdef identifier new-line groupopt
-	# ifndef identifier new-line groupopt
-elif-groups:
-	elif-group
-	elif-groups elif-group
-elif-group:
-	# elif constant-expression new-line groupopt
-	# elifdef identifier new-line groupopt
-	# elifndef identifier new-line groupopt
-else-group:
-	# else new-line groupopt
-endif-line:
-	# endif new-line
-control-line:
-	# include pp-tokens new-line
-	# embed pp-tokens new-line
-	# define identifier replacement-list new-line
-	# define identifier lparen identifier-listopt ) replacement-list new-line
-	# define identifier lparen ... ) replacement-list new-line
-	# define identifier lparen identifier-list , ... ) replacement-list new-line
-	# undef identifier new-line
-	# line pp-tokens new-line
-	# error pp-tokensopt new-line
-	# warning pp-tokensopt new-line
-	# pragma pp-tokensopt new-line
-	# new-line
-text-line:
-	pp-tokensopt new-line
-non-directive:
-	pp-tokens new-line
-lparen:
-	a ( character not immediately preceded by white space
-replacement-list:
-	pp-tokensopt
-pp-tokens:
-	preprocessing-token
-	pp-tokens preprocessing-token
-new-line:
-	the new-line character
-identifier-list:
-	identifier
-	identifier-list , identifier
-pp-parameter:
-	pp-parameter-name pp-parameter-clauseopt
-pp-parameter-name:
-	pp-standard-parameter
-	pp-prefixed-parameter
-pp-standard-parameter:
-	identifier
-pp-prefixed-parameter:
-	identifier :: identifier
-pp-parameter-clause:
-	( pp-balanced-token-sequenceopt )
-pp-balanced-token-sequence:
-	pp-balanced-token
-	pp-balanced-token-sequence pp-balanced-token
-pp-balanced-token:
-	( pp-balanced-token-sequenceopt )
-	[ pp-balanced-token-sequenceopt ]
-	{ pp-balanced-token-sequenceopt }
-	any pp-token other than a parenthesis, a bracket, or a brace
-embed-parameter-sequence:
-	pp-parameter
-	embed-parameter-sequence pp-parameter
-defined-macro-expression:
-	defined identifier
-	defined ( identifier )
-h-preprocessing-token:
-	any preprocessing-token other than >
-h-pp-tokens:
-	h-preprocessing-token
-	h-pp-tokens h-preprocessing-token
-header-name-tokens:
-	string-literal
-	< h-pp-tokens >
-has-include-expression:
-	__has_include ( header-name )
-	__has_include ( header-name-tokens )
-has-embed-expression:
-	__has_embed ( header-name embed-parameter-sequenceopt )
-	__has_embed ( header-name-tokens pp-balanced-token-sequenceopt )
-has-c-attribute-express:
-	__has_c_attribute ( pp-tokens )
-va-opt-replacement:
-	__VA_OPT__ ( pp-tokensopt )
-standard-pragma:
-	# pragma STDC FP_CONTRACT on-off-switch
-	# pragma STDC FENV_ACCESS on-off-switch
-	# pragma STDC FENV_DEC_ROUND dec-direction
-	# pragma STDC FENV_ROUND direction
-	# pragma STDC CX_LIMITED_RANGE on-off-switch
-on-off-switch: one of
-	ON OFF DEFAULT
-direction: one of
-	FE_DOWNWARD FE_TONEAREST FE_TONEARESTFROMZERO
-	FE_TOWARDZERO FE_UPWARD FE_DYNAMIC
-dec-direction: one of
-	FE_DEC_DOWNWARD FE_DEC_TONEAREST FE_DEC_TONEARESTFROMZERO
-	FE_DEC_TOWARDZERO FE_DEC_UPWARD FE_DEC_DYNAMIC
-n-char-sequence:
-	digit
-	nondigit
-	n-char-sequence digit
-	n-char-sequence nondigit
-n-wchar-sequence:
-	digit
-	nondigit
-	n-wchar-sequence digit
-	n-wchar-sequence nondigit
-d-char-sequence:
-	digit
-	nondigit
-	d-char-sequence digit
-	d-char-sequence nondigit
-d-wchar-sequence:
-	digit
-	nondigit
-	d-wchar-sequence digit
-	d-wchar-sequence nondigit
-```
-
-### Implementation limits
-
-```text
-#define BOOL_WIDTH 1 // exact value
-#define CHAR_BIT 8
-#define USHRT_WIDTH 16
-#define UINT_WIDTH 16
-#define ULONG_WIDTH 32
-#define ULLONG_WIDTH 64
-#define BITINT_MAXWIDTH ULLONG_WIDTH // at minimum as large as unsigned long long
-#define MB_LEN_MAX 1
-
-#define BOOL_MAX 1 // 2^BOOL_WIDTH - 1
-#define CHAR_MAX UCHAR_MAX or SCHAR_MAX
-#define CHAR_MIN 0 or SCHAR_MIN
-#define CHAR_WIDTH 8 // CHAR_BIT
-#define UCHAR_MAX 255 // 2^UCHAR_WIDTH - 1
-#define UCHAR_WIDTH 8 // CHAR_BIT
-#define USHRT_MAX 65535 // 2^USHRT_WIDTH - 1
-#define SCHAR_MAX +127 // 2^(SCHAR_WIDTH-1) - 1
-#define SCHAR_MIN -128 // -2^(SCHAR_WIDTH-1)
-#define SCHAR_WIDTH 8 // CHAR_BIT
-#define SHRT_MAX +32767 // 2^(SHRT_WIDTH-1) - 1
-#define SHRT_MIN -32768 // -2^(SHRT_WIDTH-1)
-#define SHRT_WIDTH 16 // USHRT_WIDTH
-#define INT_MAX +32767 // 2^(INT_WIDTH-1) - 1
-#define INT_MIN -32768 // -2^(INT_WIDTH-1)
-#define INT_WIDTH 16 // UINT_WIDTH
-#define UINT_MAX 65535 // 2^UINT_WIDTH - 1
-#define LONG_MAX +2147483647 // 2^(LONG_WIDTH-1) - 1
-#define LONG_MIN -2147483648 // -2^(LONG_WIDTH-1)
-#define LONG_WIDTH 32 // ULONG_WIDTH
-#define LLONG_MAX +9223372036854775807 // 2^(LLONG_WIDTH-1) - 1
-#define LLONG_MIN -9223372036854775808 // -2^(LLONG_WIDTH-1)
-#define LLONG_WIDTH 64 // ULLONG_WIDTH
-#define ULONG_MAX 4294967295 // 2^ULONG_WIDTH - 1
-#define ULLONG_MAX 18446744073709551615 // 2^ULLONG_WIDTH - 1
-
-#define FLT_EVAL_METHOD
-#define FLT_ROUNDS
-
-#ifdef __STDC_IEC_60559_DFP__
-#define DEC_EVAL_METHOD
-#endif
-
-#define DBL_DECIMAL_DIG 10
-#define DBL_DIG 10
-#define DBL_MANT_DIG
-#define DBL_MAX_10_EXP +37
-#define DBL_MAX_EXP
-#define DBL_MIN_10_EXP -37
-#define DBL_MIN_EXP
-#define DECIMAL_DIG 10
-#define FLT_DECIMAL_DIG 6
-#define FLT_DIG 6
-#define FLT_MANT_DIG
-#define FLT_MAX_10_EXP +37
-#define FLT_MAX_EXP
-#define FLT_MIN_10_EXP -37
-#define FLT_MIN_EXP
-#define FLT_RADIX 2
-#define LDBL_DECIMAL_DIG 10
-#define LDBL_DIG 10
-#define LDBL_MANT_DIG
-#define LDBL_MAX_10_EXP +37
-#define LDBL_MAX_EXP
-#define LDBL_MIN_10_EXP -37
-#define LDBL_MIN_EXP
-
-#define DBL_MAX 1E+37
-#define DBL_NORM_MAX 1E+37
-#define FLT_MAX 1E+37
-#define FLT_NORM_MAX 1E+37
-#define LDBL_MAX 1E+37
-#define LDBL_NORM_MAX 1E+37
-
-#define DBL_EPSILON 1E-9
-#define DBL_MIN 1E-37
-#define FLT_EPSILON 1E-5
-#define FLT_MIN 1E-37
-#define LDBL_EPSILON 1E-9
-#define LDBL_MIN 1E-37
-
-#ifdef __STDC_IEC_60559_DFP__
-#define DEC32_EPSILON 1E-6DF
-#define DEC32_MANT_DIG 7
-#define DEC32_MAX 9.999999E96DF
-#define DEC32_MAX_EXP 97
-#define DEC32_MIN 1E-95DF
-#define DEC32_MIN_EXP -94
-#define DEC32_TRUE_MIN 0.000001E-95DF
-#define DEC64_EPSILON 1E-15DD
-#define DEC64_MANT_DIG 16
-#define DEC64_MAX 9.999999999999999E384DD
-#define DEC64_MAX_EXP 385
-#define DEC64_MIN 1E-383DD
-#define DEC64_MIN_EXP -382
-#define DEC64_TRUE_MIN 0.000000000000001E-383DD
-#define DEC128_EPSILON 1E-33DL
-#define DEC128_MANT_DIG 34
-#define DEC128_MAX 9.999999999999999999999999999999999E6144DL
-#define DEC128_MAX_EXP 6145
-#define DEC128_MIN 1E-6143DL
-#define DEC128_MIN_EXP -6142
-#define DEC128_TRUE_MIN 0.000000000000000000000000000000001E-6143DL
-#endif
-```
+- `host_gate`: Require execution on the host.
+- `devcontainer_gate`: Require execution in a Docker container.
+- `interactive_gate`: Require an interactive terminal.
+- `deps_install`: `npm_install`
+- `deps_clean`: `npm_clean`
+- `trimmer_fix`: `./node_modules/.package-lock.json` + `./package.json` + `./package-lock.json` — Fix whitespace formatting.
+- `trimmer_check`: `./node_modules/.package-lock.json` + `./package.json` + `./package-lock.json` — Check whitespace formatting.
+- `prettier_fix`: `./node_modules/.package-lock.json` + `./package.json` + `./package-lock.json` + `./prettier.config.js` — Format files with Prettier.
+- `prettier_check`: `./node_modules/.package-lock.json` + `./package.json` + `./package-lock.json` + `./prettier.config.js` — Check formatting with Prettier.
+- `clang_format_fix`: `./.clang-format` — Format code with clang-format.
+- `clang_format_check`: `./.clang-format` — Check formatting with clang-format.
+- `npm_config_check`: `./.npmrc` — Check npm configuration.
+- `npm_doctor`: Check the npm environment.
+- `npm_check`: `npm_config_check` + `./node_modules/.package-lock.json` — Check npm dependencies.
+- `npm_audit`: `npm_config_check` + `./node_modules/.package-lock.json` + `./package.json` + `./package-lock.json` — Audit npm dependency security.
+- `npm_install`: `npm_config_check` + `./package.json` + `./package-lock.json` — Install npm dependencies.
+- `npm_update`: `npm_config_check` + `./package.json` + `./package-lock.json` + `npm_clean` — Update npm dependencies.
+- `npm_clean`: Remove installed npm dependencies.
+- `git_check`: Check repository integrity.
+- `toolchain_check`: Print toolchain versions.
+- `devcontainer_check`: `host_gate` — Check development environment configuration.
+- `./node_modules/.package-lock.json`: `./.npmrc` + `./package.json` + `./package-lock.json` — Prepare npm dependencies.
