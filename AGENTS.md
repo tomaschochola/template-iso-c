@@ -1,5 +1,7 @@
 # AGENTS.md
 
+This application uses ISO C23 (ISO/IEC 9899:2024) on 64-bit GNU/Linux and is compiled with GCC. It uses glibc for the C standard library and GNU/Linux APIs, with `_GNU_SOURCE=1` enabled. CMake builds the application, CTest runs automated tests, and CPack creates binary packages.
+
 ## Target platform
 
 - Operating system: GNU/Linux
@@ -62,7 +64,10 @@ The build defines [`_GNU_SOURCE=1`](https://www.sourceware.org/glibc/manual/2.43
 
 ## Development environment
 
-The development environment is configured in `.devcontainer/`. Manage it from the repository root on the host using the `devcontainer`, `docker` and `docker compose` CLIs.
+The development environment is configured in `.devcontainer/`. Manage it from the repository root on the host using the Makefile targets or directly through the `devcontainer`, `docker` and `docker compose` CLIs.
+
+- `devcontainer`: `ubuntu` 26.04.
+- `wiremock`: `wiremock/wiremock` 3.13.2.
 
 ```sh
 # start the development environment
@@ -138,31 +143,30 @@ LineEnding: LF
 
 ```text
 .
-|-- AGENTS.md
-|-- AUTHORS.md
 |-- .clang-format
-|-- CMakeLists.txt
-|-- CMakePresets.json
 |-- .devcontainer/
+|   |-- .dockerignore
+|   |-- Dockerfile
 |   |-- devcontainer.json
 |   |-- docker-compose.yml
-|   |-- Dockerfile
-|   `-- .dockerignore
+|   `-- ...
 |-- .editorconfig
 |-- .gitattributes
 |-- .gitignore
+|-- .npmrc
+|-- .prettierignore
+|-- AGENTS.md
+|-- AUTHORS.md
+|-- CMakeLists.txt
+|-- CMakePresets.json
 |-- LICENSE
 |-- Makefile
-|-- .npmrc
-|-- package.json
 |-- package-lock.json
+|-- package.json
 |-- prettier.config.js
-|-- .prettierignore
 |-- src/
-|   |-- CMakeLists.txt
 |   `-- ...
 `-- tests/
-    |-- CMakeLists.txt
     `-- ...
 ```
 
