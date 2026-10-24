@@ -27,24 +27,16 @@ never:
 # Options
 
 COMPOSE_PROJECT_NAME ?= template-iso-c-$(shell pwd -P | sha256sum | cut -c1-16)
-CFLAGS ?=
-LDFLAGS ?=
 DESTDIR ?=
-VERSION ?= $(shell v=$$(git describe --tags --abbrev=0 2>/dev/null || echo 0.0.0); v=$${v#v}; echo "$$v")
-SOURCE_DATE_EPOCH ?= $(shell git log -1 --format=%ct 2>/dev/null || echo 0)
 prefix ?= /usr/local
 SUDO ?= sudo
 
 DEVCONTAINER_COMPOSE := ./.devcontainer/docker-compose.yml
 DEVCONTAINER_TMPDIR := $(CURDIR)/.devcontainer/.tmp
-CC := gcc
 LC_ALL := C.UTF-8
+SOURCE_DATE_EPOCH := $(shell git log -1 --format=%ct)
 
-export CC
-export CFLAGS
-export LDFLAGS
 export LC_ALL
-export VERSION
 export SOURCE_DATE_EPOCH
 export COMPOSE_PROJECT_NAME
 

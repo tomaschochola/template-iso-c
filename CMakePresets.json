@@ -18,10 +18,11 @@
                 "rhs": "Linux"
             },
             "cacheVariables": {
-                "CMAKE_C_FLAGS": "$env{CFLAGS}",
+                "CMAKE_C_COMPILER": "gcc",
+                "CMAKE_C_FLAGS": "",
                 "CMAKE_COMPILE_WARNING_AS_ERROR": true,
                 "CMAKE_LINK_WARNING_AS_ERROR": true,
-                "CMAKE_EXE_LINKER_FLAGS": "$env{LDFLAGS}",
+                "CMAKE_EXE_LINKER_FLAGS": "",
                 "CMAKE_EXPORT_COMPILE_COMMANDS": true,
                 "X_CPACK_PACKAGE_VARIANT": "${presetName}"
             },
@@ -60,7 +61,8 @@
             "inherits": "base",
             "cacheVariables": {
                 "BUILD_TESTING": false,
-                "CMAKE_BUILD_TYPE": "Release"
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_C_FLAGS_RELEASE": "-O3 -DNDEBUG"
             }
         },
         {
@@ -131,28 +133,28 @@
             "name": "linux-amd64-v1",
             "inherits": "release-base",
             "cacheVariables": {
-                "CMAKE_C_FLAGS": "$env{CFLAGS} -march=x86-64"
+                "CMAKE_C_FLAGS": "-march=x86-64"
             }
         },
         {
             "name": "linux-amd64-v2",
             "inherits": "release-base",
             "cacheVariables": {
-                "CMAKE_C_FLAGS": "$env{CFLAGS} -march=x86-64-v2"
+                "CMAKE_C_FLAGS": "-march=x86-64-v2"
             }
         },
         {
             "name": "linux-amd64-v3",
             "inherits": "release-base",
             "cacheVariables": {
-                "CMAKE_C_FLAGS": "$env{CFLAGS} -march=x86-64-v3"
+                "CMAKE_C_FLAGS": "-march=x86-64-v3"
             }
         },
         {
             "name": "native",
             "inherits": "release-base",
             "cacheVariables": {
-                "CMAKE_C_FLAGS": "$env{CFLAGS} -march=native -mtune=native"
+                "CMAKE_C_FLAGS": "-march=native -mtune=native"
             }
         }
     ],

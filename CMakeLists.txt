@@ -1,14 +1,8 @@
 cmake_minimum_required(VERSION 4.4)
 
-if(DEFINED ENV{VERSION})
-    set(X_CMAKE_PROJECT_VERSION "$ENV{VERSION}")
-else()
-    set(X_CMAKE_PROJECT_VERSION "0.0.0")
-endif()
-
 project(
     template_iso_c
-    VERSION "${X_CMAKE_PROJECT_VERSION}"
+    VERSION 0.0.0
     SPDX_LICENSE "CC-BY-ND-4.0"
     DESCRIPTION "ISO C23 application template with testing, static analysis, and sanitizers."
     HOMEPAGE_URL "https://github.com/tomaschochola/template-iso-c"
@@ -60,11 +54,7 @@ set(CPACK_PACKAGE_NAME "template-iso-c")
 set(CPACK_PACKAGE_VENDOR "Tomáš Chochola")
 set(CPACK_GENERATOR "TGZ")
 set(CPACK_PACKAGE_CHECKSUM "SHA256")
-
-if(DEFINED X_CPACK_PACKAGE_VARIANT)
-    set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${PROJECT_VERSION}-${X_CPACK_PACKAGE_VARIANT}")
-endif()
-
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${PROJECT_VERSION}-${X_CPACK_PACKAGE_VARIANT}")
 set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/LICENSE")
 set(CPACK_VERBATIM_VARIABLES TRUE)
 
