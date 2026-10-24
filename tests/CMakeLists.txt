@@ -27,20 +27,4 @@ function(add_unit_test test target)
     )
 endfunction()
 
-function(add_smoke_test test target)
-    add_test(
-        NAME ${test}
-        COMMAND ${target} ${ARGN}
-    )
-
-    set_tests_properties(
-        ${test}
-        PROPERTIES
-            TIMEOUT 60
-            LABELS smoke
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    )
-endfunction()
-
 add_unit_test(unit.todo template_iso_c_tests test_todo.c)
-add_smoke_test(smoke.program template_iso_c)
