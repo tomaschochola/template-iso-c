@@ -1,6 +1,6 @@
 #include "todo.h"
 
-int main(void)
+[[nodiscard]] int main(void)
 {
-    return template_iso_c_todo();
+    return app_todo();
 }

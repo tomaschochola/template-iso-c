@@ -2,14 +2,14 @@
 
 #include "todo.h"
 
-static void test_todo_returns_zero(void)
+static void test_app_todo_returns_zero(void)
 {
-    assert(template_iso_c_todo() == 0);
+    assert(app_todo() == 0);
 }
 
-int main(void)
+[[nodiscard]] int main(void)
 {
-    test_todo_returns_zero();
+    test_app_todo_returns_zero();
 
     return 0;
 }
