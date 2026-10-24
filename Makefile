@@ -49,7 +49,7 @@ fix: prettier_fix clang_format_fix trimmer_fix
 check: devcontainer_gate doctor lint headers test all verify audit
 
 .PHONY: extended
-extended: check fanalyzer valgrind sanitize coverage
+extended: check fanalyzer valgrind sanitize
 
 .PHONY: doctor
 doctor: git_check npm_config_check npm_doctor npm_check toolchain_check

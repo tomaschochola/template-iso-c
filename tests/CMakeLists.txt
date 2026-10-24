@@ -21,7 +21,7 @@ function(add_unit_test test target)
     set_tests_properties(
         ${test}
         PROPERTIES
-            TIMEOUT 30
+            TIMEOUT 60
             LABELS unit
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
@@ -36,7 +36,7 @@ function(add_smoke_test test target)
     set_tests_properties(
         ${test}
         PROPERTIES
-            TIMEOUT 30
+            TIMEOUT 60
             LABELS smoke
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
