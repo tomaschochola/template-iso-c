@@ -26,19 +26,15 @@ never:
 
 # Options
 
-COMPOSE_PROJECT_NAME ?= template-iso-c-$(shell pwd -P | sha256sum | cut -c1-16)
 DESTDIR ?=
 prefix ?= /usr/local
 SUDO ?= sudo
 
-DEVCONTAINER_COMPOSE := ./.devcontainer/docker-compose.yml
-DEVCONTAINER_TMPDIR := $(CURDIR)/.devcontainer/.tmp
 LC_ALL := C.UTF-8
 SOURCE_DATE_EPOCH := $(shell git log -1 --format=%ct)
 
 export LC_ALL
 export SOURCE_DATE_EPOCH
-export COMPOSE_PROJECT_NAME
 
 # Public goals
 
@@ -46,10 +42,7 @@ export COMPOSE_PROJECT_NAME
 fix: prettier_fix clang_format_fix trimmer_fix
 
 .PHONY: check
-check: devcontainer_gate doctor lint headers test all verify audit
-
-.PHONY: extended
-extended: check fanalyzer valgrind sanitize
+check: doctor lint headers test integration all audit
 
 .PHONY: doctor
 doctor: git_check npm_config_check npm_doctor npm_check toolchain_check
@@ -58,15 +51,15 @@ doctor: git_check npm_config_check npm_doctor npm_check toolchain_check
 lint: prettier_check clang_format_check trimmer_check
 
 .PHONY: test
-test: devcontainer_gate
+test:
 	cmake --workflow --preset test
 
-.PHONY: verify
-verify: devcontainer_gate
-	cmake --workflow --preset verify
+.PHONY: integration
+integration: up
+	WIREMOCK_URL="http://$$(docker compose port wiremock 8080)" cmake --workflow --preset integration
 
 .PHONY: headers
-headers: devcontainer_gate
+headers:
 	cmake --workflow --preset headers
 
 .PHONY: debug
@@ -74,19 +67,19 @@ debug:
 	cmake --workflow --preset build-debug
 
 .PHONY: fanalyzer
-fanalyzer: devcontainer_gate
+fanalyzer:
 	cmake --workflow --preset fanalyzer
 
 .PHONY: coverage
-coverage: devcontainer_gate
+coverage:
 	rm --force --recursive --one-file-system -- ./out/build/coverage
 	cmake --workflow --preset coverage
-	find ./out/build/coverage/src -type f -name '*.gcno' -exec gcov-16 --branch-probabilities --conditions --prime-paths --function-summaries --no-output {} +
+	find ./out/build/coverage/src -type f -name '*.gcno' -exec gcov --branch-probabilities --conditions --prime-paths --function-summaries --no-output {} +
 
 .PHONY: valgrind
-valgrind: devcontainer_gate
+valgrind:
 	cmake --workflow --preset valgrind
-	ctest --test-dir ./out/build/valgrind --output-on-failure --stop-on-failure --no-tests=error -T MemCheck
+	ctest --test-dir ./out/build/valgrind --output-on-failure --stop-on-failure --no-tests=error --label-regex '^unit$$' -T MemCheck
 
 .PHONY: audit
 audit: npm_audit
@@ -95,19 +88,19 @@ audit: npm_audit
 update: npm_config_check npm_update
 
 .PHONY: asan
-asan: devcontainer_gate
+asan:
 	cmake --workflow --preset asan
 
 .PHONY: ubsan
-ubsan: devcontainer_gate
+ubsan:
 	cmake --workflow --preset ubsan
 
 .PHONY: tsan
-tsan: devcontainer_gate
+tsan:
 	cmake --workflow --preset tsan
 
 .PHONY: lsan
-lsan: devcontainer_gate
+lsan:
 	cmake --workflow --preset lsan
 
 .PHONY: sanitize
@@ -178,61 +171,33 @@ installcheck:
 	test -f ./out/build/native/install_manifest_Unspecified.txt
 	xargs --no-run-if-empty --delimiter='\n' --replace='{}' test -f "$(DESTDIR){}" < ./out/build/native/install_manifest_Unspecified.txt
 
-.PHONY: postcreate
-postcreate: deps_install toolchain_check
-
 .PHONY: up
-up: host_gate devcontainer_check
-	mkdir --parents -- "$(DEVCONTAINER_TMPDIR)"
-	env TMPDIR="$(DEVCONTAINER_TMPDIR)" devcontainer up --workspace-folder .
-
-.PHONY: shell
-shell: interactive_gate host_gate up
-	devcontainer exec --workspace-folder . /bin/bash
+up:
+	docker compose up --wait
 
 .PHONY: stop
-stop: host_gate
-	docker compose -f "$(DEVCONTAINER_COMPOSE)" stop
+stop:
+	docker compose stop
 
 .PHONY: down
-down: host_gate
-	docker compose -f "$(DEVCONTAINER_COMPOSE)" down --remove-orphans
-
-.PHONY: rebuild
-rebuild: host_gate devcontainer_check down
-	mkdir --parents -- "$(DEVCONTAINER_TMPDIR)"
-	env TMPDIR="$(DEVCONTAINER_TMPDIR)" devcontainer up --workspace-folder . --build-no-cache
+down:
+	docker compose down --remove-orphans
 
 .PHONY: nuke
 nuke: distclean prune
 
 .PHONY: prune
-prune: host_gate
-	docker compose -f "$(DEVCONTAINER_COMPOSE)" down --volumes --rmi local --remove-orphans
+prune:
+	docker compose down --volumes --rmi local --remove-orphans
 
 .PHONY: clean
 clean:
-	rm --force --recursive --one-file-system -- ./dist ./out "$(DEVCONTAINER_TMPDIR)"
+	rm --force --recursive --one-file-system -- ./dist ./out
 
 .PHONY: distclean
 distclean: clean deps_clean
 
 # Protected goals
-
-.PHONY: host_gate
-.SILENT: host_gate
-host_gate:
-	if test -e /.dockerenv; then printf '%s\n' 'host_gate: host only' >&2; exit 1; fi
-
-.PHONY: devcontainer_gate
-.SILENT: devcontainer_gate
-devcontainer_gate:
-	if test ! -e /.dockerenv; then printf '%s\n' 'devcontainer_gate: devcontainer only' >&2; exit 1; fi
-
-.PHONY: interactive_gate
-.SILENT: interactive_gate
-interactive_gate:
-	if test ! -t 0 || test ! -t 1; then printf '%s\n' 'interactive_gate: interactive only' >&2; exit 1; fi
 
 .PHONY: deps_install
 deps_install: npm_install
@@ -317,12 +282,6 @@ toolchain_check:
 	valgrind --version
 	gcov --version
 	clang-format --version
-
-.PHONY: devcontainer_check
-devcontainer_check: host_gate
-	devcontainer read-configuration --workspace-folder . >/dev/null
-	docker compose -f "$(DEVCONTAINER_COMPOSE)" config --quiet
-	docker build --check --file ./.devcontainer/Dockerfile ./.devcontainer
 
 # Private targets
 

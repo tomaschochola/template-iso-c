@@ -10,7 +10,6 @@ project(
 )
 
 set(CMAKE_C23_STANDARD_COMPILE_OPTION "-std=c23")
-
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
@@ -34,8 +33,10 @@ include(GNUInstallDirs)
 include(CheckPIESupported)
 check_pie_supported(LANGUAGES C)
 
-set(MEMORYCHECK_TYPE "Valgrind")
-set(MEMORYCHECK_COMMAND_OPTIONS "--error-exitcode=255")
+set(
+    MEMORYCHECK_COMMAND_OPTIONS
+    "-q --tool=memcheck --leak-check=full --num-callers=50 --error-exitcode=255"
+)
 
 include(CTest)
 

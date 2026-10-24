@@ -1,0 +1,13 @@
+{
+    "request": {
+        "method": "GET",
+        "urlPath": "/livez"
+    },
+    "response": {
+        "status": 200,
+        "headers": {
+            "Content-Type": "text/plain"
+        },
+        "body": "ok\n"
+    }
+}

@@ -57,31 +57,7 @@ The build defines [`_GNU_SOURCE=1`](https://www.sourceware.org/glibc/manual/2.43
 - valgrind 3.26
 - cpack 4.4
 - gcov 16.0
-- python3 3.14
 - clang-format 21.1
-- node 24.22
-- npm 11.19
-
-## Development environment
-
-The development environment is configured in `.devcontainer/`. Manage it from the repository root on the host using the Makefile targets or directly through the `devcontainer`, `docker` and `docker compose` CLIs.
-
-- `devcontainer`: `ubuntu` 26.04 — Run development tools and workspace commands.
-- `wiremock`: `wiremock/wiremock` 3.13.2 — Mock HTTP APIs for automated tests.
-
-```sh
-# start the development environment
-make up
-
-# run a workspace command
-devcontainer exec --workspace-folder . COMMAND ARG...
-
-# run a shell command
-devcontainer exec --workspace-folder . bash -c 'COMMAND ARG... | COMMAND ARG...'
-
-# run a sidecar command
-docker compose -f .devcontainer/docker-compose.yml exec -T SERVICE COMMAND ARG...
-```
 
 ## EditorConfig
 
@@ -144,12 +120,6 @@ LineEnding: LF
 ```text
 .
 |-- .clang-format
-|-- .devcontainer/
-|   |-- .dockerignore
-|   |-- Dockerfile
-|   |-- devcontainer.json
-|   |-- docker-compose.yml
-|   `-- ...
 |-- .editorconfig
 |-- .gitattributes
 |-- .gitignore
@@ -161,12 +131,15 @@ LineEnding: LF
 |-- CMakePresets.json
 |-- LICENSE
 |-- Makefile
+|-- docker-compose.yml
 |-- package-lock.json
 |-- package.json
 |-- prettier.config.js
 |-- src/
 |   `-- ...
-`-- tests/
+|-- tests/
+|   `-- ...
+`-- wiremock/
     `-- ...
 ```
 
@@ -174,23 +147,22 @@ LineEnding: LF
 
 - `never`: Require an explicit target.
 - `fix`: `prettier_fix` + `clang_format_fix` + `trimmer_fix`
-- `check`: `devcontainer_gate` + `doctor` + `lint` + `headers` + `test` + `all` + `verify` + `audit`
-- `extended`: `check` + `fanalyzer` + `valgrind` + `sanitize`
+- `check`: `doctor` + `lint` + `headers` + `test` + `integration` + `all` + `audit`
 - `doctor`: `git_check` + `npm_config_check` + `npm_doctor` + `npm_check` + `toolchain_check`
 - `lint`: `prettier_check` + `clang_format_check` + `trimmer_check`
-- `test`: `devcontainer_gate` — Run tests in a debug build.
-- `verify`: `devcontainer_gate` — Run tests in a release build.
-- `headers`: `devcontainer_gate` — Check standalone header compilation.
+- `test`: Run unit tests.
+- `integration`: `up` — Run integration tests.
+- `headers`: Check headers.
 - `debug`: Build the debug application.
-- `fanalyzer`: `devcontainer_gate` — Analyze code with GCC.
-- `coverage`: `devcontainer_gate` — Measure and report test coverage.
-- `valgrind`: `devcontainer_gate` — Run tests with Valgrind.
+- `fanalyzer`: Run static analysis.
+- `coverage`: Report test coverage.
+- `valgrind`: Run unit tests with Valgrind.
 - `audit`: `npm_audit`
 - `update`: `npm_config_check` + `npm_update`
-- `asan`: `devcontainer_gate` — Run tests with AddressSanitizer.
-- `ubsan`: `devcontainer_gate` — Run tests with UndefinedBehaviorSanitizer.
-- `tsan`: `devcontainer_gate` — Run tests with ThreadSanitizer.
-- `lsan`: `devcontainer_gate` — Run tests with LeakSanitizer.
+- `asan`: Run unit tests with AddressSanitizer.
+- `ubsan`: Run unit tests with UndefinedBehaviorSanitizer.
+- `tsan`: Run unit tests with ThreadSanitizer.
+- `lsan`: Run unit tests with LeakSanitizer.
 - `sanitize`: `asan` + `ubsan` + `tsan` + `lsan`
 - `native`: Build the application for the current CPU.
 - `release`: Build the release application.
@@ -205,22 +177,16 @@ LineEnding: LF
 - `dist_linux_amd64_v2`: Package the application for x86-64-v2.
 - `dist_linux_amd64_v3`: Package the application for x86-64-v3.
 - `dist`: `dist_native` + `dist_debug` + `dist_release`
-- `install`: Install the application.
+- `install`: Build and install the application.
 - `uninstall`: Uninstall the application.
 - `installcheck`: Check the application installation.
-- `postcreate`: `deps_install` + `toolchain_check`
-- `up`: `host_gate` + `devcontainer_check` — Start the development environment.
-- `shell`: `interactive_gate` + `host_gate` + `up` — Open a shell in the development environment.
-- `stop`: `host_gate` — Stop the development environment.
-- `down`: `host_gate` — Remove the development environment.
-- `rebuild`: `host_gate` + `devcontainer_check` + `down` — Rebuild the development environment.
+- `up`: Start test services.
+- `stop`: Stop test services.
+- `down`: Remove test services.
 - `nuke`: `distclean` + `prune`
-- `prune`: `host_gate` — Remove project container resources.
-- `clean`: Remove generated project files.
+- `prune`: Remove project container resources.
+- `clean`: Remove generated files.
 - `distclean`: `clean` + `deps_clean`
-- `host_gate`: Require execution on the host.
-- `devcontainer_gate`: Require execution in a Docker container.
-- `interactive_gate`: Require an interactive terminal.
 - `deps_install`: `npm_install`
 - `deps_clean`: `npm_clean`
 - `trimmer_fix`: `./node_modules/.package-lock.json` + `./package.json` + `./package-lock.json` — Fix whitespace formatting.
@@ -238,5 +204,4 @@ LineEnding: LF
 - `npm_clean`: Remove installed npm dependencies.
 - `git_check`: Check repository integrity.
 - `toolchain_check`: Print toolchain versions.
-- `devcontainer_check`: `host_gate` — Check development environment configuration.
 - `./node_modules/.package-lock.json`: `./.npmrc` + `./package.json` + `./package-lock.json` — Prepare npm dependencies.

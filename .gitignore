@@ -6,9 +6,6 @@
 .zed
 .antigravitycli
 
-# devcontainer
-/.devcontainer/.tmp
-
 # node
 /node_modules
 

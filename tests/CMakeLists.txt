@@ -1,4 +1,4 @@
-function(add_unit_test test target)
+function(add_project_test test target label)
     add_executable(${target} ${ARGN})
 
     target_compile_options(
@@ -22,9 +22,9 @@ function(add_unit_test test target)
         ${test}
         PROPERTIES
             TIMEOUT 60
-            LABELS unit
+            LABELS ${label}
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
 endfunction()
 
-add_unit_test(unit.todo template_iso_c_tests test_todo.c)
+add_project_test(unit.todo template_iso_c_tests unit test_todo.c)
