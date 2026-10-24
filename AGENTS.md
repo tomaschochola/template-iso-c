@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This application uses ISO C23 (ISO/IEC 9899:2024) on 64-bit GNU/Linux and is compiled with GCC. It uses glibc for the C standard library and GNU/Linux APIs, with `_GNU_SOURCE=1` enabled. CMake builds the application, CTest runs automated tests, and CPack creates binary packages.
+This application uses ISO C23 (ISO/IEC 9899:2024) on 64-bit GNU/Linux and is compiled with GCC's `gcc`. It uses glibc for the C standard library and GNU/Linux APIs, with `_GNU_SOURCE=1` enabled. CMake builds the application, CTest runs automated tests, and CPack creates binary packages.
 
 ## Target platform
 
@@ -10,8 +10,8 @@ This application uses ISO C23 (ISO/IEC 9899:2024) on 64-bit GNU/Linux and is com
 - Architecture: x86_64 (amd64)
 - Data layout: 64-bit, LP64, little-endian
 - Instruction sets: x86-64-v1, x86-64-v2, x86-64-v3
-- C library: glibc 2.43
-- Interfaces: GNU extensions, Linux-specific interfaces, Linux UAPI, POSIX.1-2024, XSI, ISO C23
+- C standard library: glibc 2.43
+- Interfaces: GNU extensions, Linux-specific interfaces, Linux UAPI, POSIX.1-2024, XSI
 
 ## Build tools
 
@@ -28,7 +28,7 @@ This application uses ISO C23 (ISO/IEC 9899:2024) on 64-bit GNU/Linux and is com
 
 ## glibc API
 
-The build defines [`_GNU_SOURCE=1`](https://www.sourceware.org/glibc/manual/2.43/html_node/Feature-Test-Macros.html) for all C targets, enabling these feature-test macros in glibc 2.43:
+The build defines [`_GNU_SOURCE=1`](https://www.sourceware.org/glibc/manual/2.43/html_node/Feature-Test-Macros.html) for all project targets, enabling these feature-test macros in glibc 2.43:
 
 ```c
 #define _ISOC95_SOURCE 1
@@ -66,8 +66,8 @@ The build defines [`_GNU_SOURCE=1`](https://www.sourceware.org/glibc/manual/2.43
 
 The development environment is configured in `.devcontainer/`. Manage it from the repository root on the host using the Makefile targets or directly through the `devcontainer`, `docker` and `docker compose` CLIs.
 
-- `devcontainer`: `ubuntu` 26.04.
-- `wiremock`: `wiremock/wiremock` 3.13.2.
+- `devcontainer`: `ubuntu` 26.04 — Run development tools and workspace commands.
+- `wiremock`: `wiremock/wiremock` 3.13.2 — Mock HTTP APIs for automated tests.
 
 ```sh
 # start the development environment
@@ -175,7 +175,7 @@ LineEnding: LF
 - `never`: Require an explicit target.
 - `fix`: `prettier_fix` + `clang_format_fix` + `trimmer_fix`
 - `check`: `devcontainer_gate` + `doctor` + `lint` + `headers` + `test` + `all` + `verify` + `audit`
-- `extended`: `check` + `fanalyzer` + `valgrind` + `sanitize` + `coverage`
+- `extended`: `check` + `fanalyzer` + `valgrind` + `sanitize`
 - `doctor`: `git_check` + `npm_config_check` + `npm_doctor` + `npm_check` + `toolchain_check`
 - `lint`: `prettier_check` + `clang_format_check` + `trimmer_check`
 - `test`: `devcontainer_gate` — Run tests in a debug build.
