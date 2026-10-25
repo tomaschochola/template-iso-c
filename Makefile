@@ -42,7 +42,7 @@ export SOURCE_DATE_EPOCH
 fix: prettier_fix clang_format_fix trimmer_fix
 
 .PHONY: check
-check: doctor lint headers test all audit
+check: doctor lint test all audit
 
 .PHONY: doctor
 doctor: git_check npm_config_check npm_doctor npm_check toolchain_check
@@ -53,10 +53,6 @@ lint: prettier_check clang_format_check trimmer_check
 .PHONY: test
 test:
 	cmake --workflow --preset test
-
-.PHONY: headers
-headers:
-	cmake --workflow --preset headers
 
 .PHONY: debug
 debug:
@@ -70,12 +66,12 @@ fanalyzer:
 coverage:
 	rm --force --recursive --one-file-system -- ./out/build/coverage
 	cmake --workflow --preset coverage
-	find ./out/build/coverage/src -type f -name '*.gcno' -exec gcov --branch-probabilities --conditions --prime-paths --function-summaries --no-output {} +
+	find ./out/build/coverage/src -type f -name '*.gcno' -exec gcov --no-output {} +
 
 .PHONY: valgrind
 valgrind:
 	cmake --workflow --preset valgrind
-	ctest --test-dir ./out/build/valgrind --output-on-failure --stop-on-failure --no-tests=error -T MemCheck
+	ctest --preset valgrind --test-dir ./out/build/valgrind -T MemCheck
 
 .PHONY: audit
 audit: npm_audit

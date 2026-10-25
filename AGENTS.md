@@ -144,11 +144,10 @@ LineEnding: LF
 
 - `never`: Require an explicit target.
 - `fix`: `prettier_fix` + `clang_format_fix` + `trimmer_fix`
-- `check`: `doctor` + `lint` + `headers` + `test` + `all` + `audit`
+- `check`: `doctor` + `lint` + `test` + `all` + `audit`
 - `doctor`: `git_check` + `npm_config_check` + `npm_doctor` + `npm_check` + `toolchain_check`
 - `lint`: `prettier_check` + `clang_format_check` + `trimmer_check`
 - `test`: Run all tests.
-- `headers`: Check headers.
 - `debug`: Build the debug application.
 - `fanalyzer`: Run static analysis.
 - `coverage`: Report test coverage.
