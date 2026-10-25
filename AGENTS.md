@@ -2,6 +2,8 @@
 
 This application uses ISO C23 (ISO/IEC 9899:2024) on 64-bit GNU/Linux and is compiled with GCC's `gcc`. It uses glibc for the C standard library and GNU/Linux APIs, with `_GNU_SOURCE=1` enabled. CMake builds the application, CTest runs automated tests, and CPack creates binary packages.
 
+The documented GNU/Linux amd64 environment with Linux 7.x, its toolchain and libraries, and the selected instruction-set variant define the target; portability to other platforms or compatibility with older environments is not a goal. Make full use of the facilities available in ISO C23, glibc, GNU APIs exposed by `_GNU_SOURCE=1`, and Linux-specific APIs. Prefer modern, supported APIs and technologies over legacy, deprecated, or superseded alternatives. When an older API and a newer supported alternative both provide the required behavior on this target, choose the newer alternative rather than retaining the older one for familiarity or broader compatibility. Do not add portability wrappers, compatibility layers, or fallback implementations for environments outside this target unless explicitly required.
+
 ## Target platform
 
 - Operating system: GNU/Linux
