@@ -131,15 +131,12 @@ LineEnding: LF
 |-- CMakePresets.json
 |-- LICENSE
 |-- Makefile
-|-- docker-compose.yml
 |-- package-lock.json
 |-- package.json
 |-- prettier.config.js
 |-- src/
 |   `-- ...
-|-- tests/
-|   `-- ...
-`-- wiremock/
+`-- tests/
     `-- ...
 ```
 
@@ -147,22 +144,21 @@ LineEnding: LF
 
 - `never`: Require an explicit target.
 - `fix`: `prettier_fix` + `clang_format_fix` + `trimmer_fix`
-- `check`: `doctor` + `lint` + `headers` + `test` + `integration` + `all` + `audit`
+- `check`: `doctor` + `lint` + `headers` + `test` + `all` + `audit`
 - `doctor`: `git_check` + `npm_config_check` + `npm_doctor` + `npm_check` + `toolchain_check`
 - `lint`: `prettier_check` + `clang_format_check` + `trimmer_check`
-- `test`: Run unit tests.
-- `integration`: `up` — Run integration tests.
+- `test`: Run all tests.
 - `headers`: Check headers.
 - `debug`: Build the debug application.
 - `fanalyzer`: Run static analysis.
 - `coverage`: Report test coverage.
-- `valgrind`: Run unit tests with Valgrind.
+- `valgrind`: Run all tests with Valgrind.
 - `audit`: `npm_audit`
 - `update`: `npm_config_check` + `npm_update`
-- `asan`: Run unit tests with AddressSanitizer.
-- `ubsan`: Run unit tests with UndefinedBehaviorSanitizer.
-- `tsan`: Run unit tests with ThreadSanitizer.
-- `lsan`: Run unit tests with LeakSanitizer.
+- `asan`: Run all tests with AddressSanitizer.
+- `ubsan`: Run all tests with UndefinedBehaviorSanitizer.
+- `tsan`: Run all tests with ThreadSanitizer.
+- `lsan`: Run all tests with LeakSanitizer.
 - `sanitize`: `asan` + `ubsan` + `tsan` + `lsan`
 - `native`: Build the application for the current CPU.
 - `release`: Build the release application.
@@ -180,11 +176,7 @@ LineEnding: LF
 - `install`: Build and install the application.
 - `uninstall`: Uninstall the application.
 - `installcheck`: Check the application installation.
-- `up`: Start test services.
-- `stop`: Stop test services.
-- `down`: Remove test services.
-- `nuke`: `distclean` + `prune`
-- `prune`: Remove project container resources.
+- `nuke`: `distclean`
 - `clean`: Remove generated files.
 - `distclean`: `clean` + `deps_clean`
 - `deps_install`: `npm_install`

@@ -221,27 +221,12 @@
             "execution": {
                 "noTestsAction": "error",
                 "stopOnFailure": true
-            },
-            "filter": {
-                "include": {
-                    "label": "^unit$"
-                }
             }
         },
         {
             "name": "debug",
             "inherits": "test-base",
             "configurePreset": "debug"
-        },
-        {
-            "name": "integration",
-            "inherits": "test-base",
-            "configurePreset": "debug",
-            "filter": {
-                "include": {
-                    "label": "^integration$"
-                }
-            }
         },
         {
             "name": "fanalyzer",
@@ -352,23 +337,6 @@
                 {
                     "type": "test",
                     "name": "debug"
-                }
-            ]
-        },
-        {
-            "name": "integration",
-            "steps": [
-                {
-                    "type": "configure",
-                    "name": "debug"
-                },
-                {
-                    "type": "build",
-                    "name": "debug"
-                },
-                {
-                    "type": "test",
-                    "name": "integration"
                 }
             ]
         },

@@ -42,7 +42,7 @@ export SOURCE_DATE_EPOCH
 fix: prettier_fix clang_format_fix trimmer_fix
 
 .PHONY: check
-check: doctor lint headers test integration all audit
+check: doctor lint headers test all audit
 
 .PHONY: doctor
 doctor: git_check npm_config_check npm_doctor npm_check toolchain_check
@@ -53,10 +53,6 @@ lint: prettier_check clang_format_check trimmer_check
 .PHONY: test
 test:
 	cmake --workflow --preset test
-
-.PHONY: integration
-integration: up
-	WIREMOCK_URL="http://$$(docker compose port wiremock 8080)" cmake --workflow --preset integration
 
 .PHONY: headers
 headers:
@@ -79,7 +75,7 @@ coverage:
 .PHONY: valgrind
 valgrind:
 	cmake --workflow --preset valgrind
-	ctest --test-dir ./out/build/valgrind --output-on-failure --stop-on-failure --no-tests=error --label-regex '^unit$$' -T MemCheck
+	ctest --test-dir ./out/build/valgrind --output-on-failure --stop-on-failure --no-tests=error -T MemCheck
 
 .PHONY: audit
 audit: npm_audit
@@ -171,24 +167,8 @@ installcheck:
 	test -f ./out/build/native/install_manifest_Unspecified.txt
 	xargs --no-run-if-empty --delimiter='\n' --replace='{}' test -f "$(DESTDIR){}" < ./out/build/native/install_manifest_Unspecified.txt
 
-.PHONY: up
-up:
-	docker compose up --wait
-
-.PHONY: stop
-stop:
-	docker compose stop
-
-.PHONY: down
-down:
-	docker compose down --remove-orphans
-
 .PHONY: nuke
-nuke: distclean prune
-
-.PHONY: prune
-prune:
-	docker compose down --volumes --rmi local --remove-orphans
+nuke: distclean
 
 .PHONY: clean
 clean:
