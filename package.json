@@ -15,7 +15,7 @@
             "url": "https://github.com/tomaschochola"
         }
     ],
-    "description": "ISO C23 application template with testing, static analysis, and sanitizers.",
+    "description": "github.com/tomaschochola/template-iso-c",
     "devDependencies": {
         "@tomaschochola/tooling-prettier": "git+https://github.com/tomaschochola/tooling-prettier.git#main",
         "@tomaschochola/tooling-trimmer": "git+https://github.com/tomaschochola/tooling-trimmer.git#main"

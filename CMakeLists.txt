@@ -4,7 +4,7 @@ project(
     template_iso_c
     VERSION 0.0.0
     SPDX_LICENSE "BSD-3-Clause"
-    DESCRIPTION "ISO C23 application template with testing, static analysis, and sanitizers."
+    DESCRIPTION "github.com/tomaschochola/template-iso-c"
     HOMEPAGE_URL "https://github.com/tomaschochola/template-iso-c"
     LANGUAGES C
 )
