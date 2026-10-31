@@ -31,10 +31,7 @@ include(GNUInstallDirs)
 include(CheckPIESupported)
 check_pie_supported(LANGUAGES C)
 
-set(
-    MEMORYCHECK_COMMAND_OPTIONS
-    "-q --tool=memcheck --leak-check=full --error-exitcode=255"
-)
+set(MEMORYCHECK_COMMAND_OPTIONS "-q --tool=memcheck --leak-check=full --error-exitcode=255")
 
 include(CTest)
 

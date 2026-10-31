@@ -1,6 +1,3 @@
-#ifndef TEMPLATE_ISO_C_TODO_H
-#define TEMPLATE_ISO_C_TODO_H
+#pragma once
 
 [[nodiscard]] int app_todo(void);
-
-#endif

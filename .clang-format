@@ -1,9 +1,11 @@
 ---
-BasedOnStyle: LLVM
+BasedOnStyle: Microsoft
 ColumnLimit: 200
-IndentWidth: 4
-BreakBeforeBraces: Linux
-AllowShortFunctionsOnASingleLine: None
+NamespaceIndentation: All
+InsertBraces: true
+BreakBeforeBraces: Allman
+SeparateDefinitionBlocks: Always
+WrapNamespaceBodyWithEmptyLines: Always
 InsertNewlineAtEOF: true
 LineEnding: LF
 ...
