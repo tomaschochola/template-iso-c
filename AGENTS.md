@@ -53,9 +53,7 @@ max_line_length = off
     "arrowParens": "always",
     "bracketSameLine": false,
     "objectWrap": "preserve",
-    "plugins": [
-        "@prettier/plugin-xml"
-    ],
+    "plugins": ["@prettier/plugin-xml"],
     "proseWrap": "never",
     "semi": true,
     "singleAttributePerLine": true,
