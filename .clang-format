@@ -1,6 +1,6 @@
 ---
 BasedOnStyle: Microsoft
-ColumnLimit: 200
+ColumnLimit: 0
 NamespaceIndentation: All
 InsertBraces: true
 BreakBeforeBraces: Allman
