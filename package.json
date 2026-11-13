@@ -17,8 +17,8 @@
     ],
     "description": "github.com/tomaschochola/template-iso-c",
     "devDependencies": {
-        "@tomaschochola/tooling-prettier": "git+https://github.com/tomaschochola/tooling-prettier.git#main",
-        "@tomaschochola/tooling-trimmer": "git+https://github.com/tomaschochola/tooling-trimmer.git#main"
+        "@tomaschochola/tooling-prettier": "file:../tooling-prettier",
+        "@tomaschochola/tooling-trimmer": "file:../tooling-trimmer"
     },
     "funding": {
         "type": "github",
