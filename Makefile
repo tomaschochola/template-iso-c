@@ -59,9 +59,36 @@ clang_format_fix: ./.clang-format
 clean:
 	rm --force --recursive --one-file-system -- ./dist ./out ./temp ./temporary ./tmp ./.temp ./.temporary ./.tmp
 
+.PHONY: command_check
+command_check:
+	command -v bash >/dev/null
+	command -v clang-format >/dev/null
+	command -v cmake >/dev/null
+	command -v cpack >/dev/null
+	command -v ctest >/dev/null
+	command -v env >/dev/null
+	command -v fd >/dev/null
+	command -v find >/dev/null
+	command -v gcc >/dev/null
+	command -v gcov >/dev/null
+	command -v gcovr >/dev/null
+	command -v git >/dev/null
+	command -v make >/dev/null
+	command -v mkdir >/dev/null
+	command -v ninja >/dev/null
+	command -v npm >/dev/null
+	command -v rm >/dev/null
+	command -v rmdir >/dev/null
+	command -v shellcheck >/dev/null
+	command -v sort >/dev/null
+ifneq ($(strip $(SUDO)),)
+	command -v $(firstword $(SUDO)) >/dev/null
+endif
+	command -v valgrind >/dev/null
+	command -v xargs >/dev/null
+
 .PHONY: coverage
 coverage:
-	command -v gcovr >/dev/null
 	rm --force --recursive --one-file-system -- ./out/build/coverage ./out/coverage
 	cmake --workflow --preset coverage
 	test -n "$$(find ./out/build/coverage/src -type f -name '*.gcno' -print -quit)"
@@ -115,7 +142,7 @@ dist_release:
 distclean: clean deps_clean
 
 .PHONY: doctor
-doctor: git_check npm_config_check npm_doctor npm_check toolchain_check
+doctor: command_check git_check npm_config_check npm_doctor npm_check
 
 .PHONY: fanalyzer
 fanalyzer:
@@ -221,24 +248,12 @@ sanitize: asan lsan tsan ubsan
 
 .PHONY: shellcheck
 shellcheck:
-	command -v shellcheck >/dev/null
 	git ls-files -z -- '*.sh' | xargs --null --no-run-if-empty env -u SHELLCHECK_OPTS shellcheck --shell=sh --norc --severity=style --enable=all --external-sources --check-sourced --source-path=SCRIPTDIR --
 	git ls-files -z -- '*.bash' | xargs --null --no-run-if-empty env -u SHELLCHECK_OPTS shellcheck --shell=bash --norc --severity=style --enable=all --external-sources --check-sourced --source-path=SCRIPTDIR --
 
 .PHONY: test
 test:
 	cmake --workflow --preset test
-
-.PHONY: toolchain_check
-toolchain_check:
-	cmake --version
-	gcc --version
-	ninja --version
-	ctest --version
-	valgrind --version
-	gcov --version
-	gcovr --version
-	clang-format --version
 
 .PHONY: trimmer_check
 trimmer_check: ./node_modules/.package-lock.json ./package.json ./package-lock.json
