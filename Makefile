@@ -45,7 +45,7 @@ asan:
 audit: npm_audit
 
 .PHONY: check
-check: doctor lint test all audit
+check: doctor lint test sanitize all audit
 
 .PHONY: clang_format_check
 clang_format_check: ./.clang-format
@@ -210,6 +210,9 @@ prettier_fix: ./node_modules/.package-lock.json ./package.json ./package-lock.js
 .PHONY: release
 release:
 	cmake --workflow --preset build-release
+
+.PHONY: sanitize
+sanitize: asan lsan tsan ubsan
 
 .PHONY: shellcheck
 shellcheck:
