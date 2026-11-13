@@ -45,7 +45,7 @@ asan:
 audit: npm_audit
 
 .PHONY: check
-check: doctor lint test sanitize all audit
+check: doctor lint fanalyzer test sanitize valgrind all audit
 
 .PHONY: clang_format_check
 clang_format_check: ./.clang-format
