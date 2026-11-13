@@ -2,13 +2,11 @@
 
 #include "todo.h"
 
-static void test_app_todo_returns_zero(void)
-{
+static void test_app_todo_returns_zero(void) {
     assert(app_todo() == 0);
 }
 
-[[nodiscard]] int main(void)
-{
+[[nodiscard]] int main(void) {
     test_app_todo_returns_zero();
 
     return 0;

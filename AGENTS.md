@@ -108,12 +108,32 @@ export default Object.freeze({
 ```yaml
 ---
 BasedOnStyle: Microsoft
+
+IndentWidth: 4
+ContinuationIndentWidth: 4
+UseTab: Never
 ColumnLimit: 0
-NamespaceIndentation: All
+
+BreakBeforeBraces: Attach
 InsertBraces: true
-BreakBeforeBraces: Allman
+RemoveBracesLLVM: false
+
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseExpressionOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortCompoundRequirementOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLambdasOnASingleLine: None
+AllowShortLoopsOnASingleLine: false
+AllowShortNamespacesOnASingleLine: false
+AllowShortRecordOnASingleLine: Never
+
+NamespaceIndentation: All
 SeparateDefinitionBlocks: Always
 WrapNamespaceBodyWithEmptyLines: Always
+
 InsertNewlineAtEOF: true
 LineEnding: LF
 ...
