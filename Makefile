@@ -49,11 +49,11 @@ check: doctor lint fanalyzer test sanitize valgrind all audit
 
 .PHONY: clang_format_check
 clang_format_check: ./.clang-format
-	find ./src ./tests -type f '(' -name '*.c' -o -name '*.h' ')' -print0 | xargs -0 -r clang-format -n --Werror --style=file --
+	fd --case-sensitive --hidden --exclude .git --type file --glob '*.{c,h}' ./src ./tests --exec-batch clang-format -n --Werror --style=file --
 
 .PHONY: clang_format_fix
 clang_format_fix: ./.clang-format
-	find ./src ./tests -type f '(' -name '*.c' -o -name '*.h' ')' -print0 | xargs -0 -r clang-format -i --Werror --style=file --
+	fd --case-sensitive --hidden --exclude .git --type file --glob '*.{c,h}' ./src ./tests --exec-batch clang-format -i --Werror --style=file --
 
 .PHONY: clean
 clean:
@@ -68,7 +68,6 @@ command_check:
 	command -v ctest >/dev/null
 	command -v env >/dev/null
 	command -v fd >/dev/null
-	command -v find >/dev/null
 	command -v gcc >/dev/null
 	command -v gcov >/dev/null
 	command -v gcovr >/dev/null
@@ -91,8 +90,8 @@ endif
 coverage:
 	rm --force --recursive --one-file-system -- ./out/build/coverage ./out/coverage
 	cmake --workflow --preset coverage
-	test -n "$$(find ./out/build/coverage/src -type f -name '*.gcno' -print -quit)"
-	test -n "$$(find ./out/build/coverage -type f -name '*.gcda' -print -quit)"
+	fd --case-sensitive --hidden --no-ignore --type file --quiet --glob '*.gcno' ./out/build/coverage/src
+	fd --case-sensitive --hidden --no-ignore --type file --quiet --glob '*.gcda' ./out/build/coverage
 	mkdir --parents -- ./out/coverage/html
 	gcovr --root . --filter '^src/' --print-summary --html-details ./out/coverage/html/index.html ./out/build/coverage
 	test -s ./out/coverage/html/index.html
@@ -248,8 +247,8 @@ sanitize: asan lsan tsan ubsan
 
 .PHONY: shellcheck
 shellcheck:
-	git ls-files -z -- '*.sh' | xargs --null --no-run-if-empty env -u SHELLCHECK_OPTS shellcheck --shell=sh --norc --severity=style --enable=all --external-sources --check-sourced --source-path=SCRIPTDIR --
-	git ls-files -z -- '*.bash' | xargs --null --no-run-if-empty env -u SHELLCHECK_OPTS shellcheck --shell=bash --norc --severity=style --enable=all --external-sources --check-sourced --source-path=SCRIPTDIR --
+	fd --case-sensitive --hidden --exclude .git --type file --glob '*.sh' --exec-batch env -u SHELLCHECK_OPTS shellcheck --shell=sh --norc --severity=style --enable=all --external-sources --check-sourced --source-path=SCRIPTDIR --
+	fd --case-sensitive --hidden --exclude .git --type file --glob '*.bash' --exec-batch env -u SHELLCHECK_OPTS shellcheck --shell=bash --norc --severity=style --enable=all --external-sources --check-sourced --source-path=SCRIPTDIR --
 
 .PHONY: test
 test:
