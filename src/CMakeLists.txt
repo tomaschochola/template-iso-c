@@ -1,13 +1,23 @@
+configure_file(
+    cli_config.h.in
+    ${CMAKE_CURRENT_BINARY_DIR}/cli_config.h
+    @ONLY
+)
+
 add_library(template_iso_c_core STATIC)
 
 target_sources(
     template_iso_c_core
     PRIVATE
-        todo.c
+        cli.c
     PUBLIC
         FILE_SET HEADERS
-        BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}
-        FILES todo.h
+        BASE_DIRS
+            ${CMAKE_CURRENT_SOURCE_DIR}
+            ${CMAKE_CURRENT_BINARY_DIR}
+        FILES
+            cli.h
+            ${CMAKE_CURRENT_BINARY_DIR}/cli_config.h
 )
 
 add_executable(template_iso_c)
@@ -21,7 +31,7 @@ target_sources(
 set_target_properties(
     template_iso_c
     PROPERTIES
-        OUTPUT_NAME "template-iso-c"
+        OUTPUT_NAME "${PROJECT_NAME}"
 )
 
 target_link_libraries(
@@ -31,7 +41,8 @@ target_link_libraries(
 )
 
 install(
-    TARGETS template_iso_c
+    TARGETS
+        template_iso_c
     RUNTIME
     DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
