@@ -31,9 +31,4 @@ function(add_project_test test target label)
     )
 endfunction()
 
-add_project_test(
-    unit.cli
-    template_iso_c_tests
-    unit
-    test_cli.c
-)
+add_project_test(unit.cli template_iso_c_tests unit test_cli.c)
