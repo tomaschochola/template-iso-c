@@ -233,6 +233,9 @@ npm_update: npm_config_check ./package.json ./package-lock.json npm_clean
 .PHONY: nuke
 nuke: distclean xfd dirclean
 
+.PHONY: postcreate
+postcreate: command_check deps_install
+
 .PHONY: prettier_check
 prettier_check: ./node_modules/.package-lock.json ./package.json ./package-lock.json ./prettier.config.js
 	npm exec --no --ignore-scripts -- prettier -c .

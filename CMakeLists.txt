@@ -18,15 +18,21 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF)
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON)
 
-add_compile_options(
-    -Wall
-    -Wextra
-    -Wpedantic
-    -pedantic-errors
+add_library(project_compile_options INTERFACE)
+
+target_compile_options(
+    project_compile_options
+    INTERFACE
+        -Wall
+        -Wextra
+        -Wpedantic
+        -pedantic-errors
 )
 
-add_compile_definitions(
-    _GNU_SOURCE=1
+target_compile_definitions(
+    project_compile_options
+    INTERFACE
+        _GNU_SOURCE=1
 )
 
 include(GNUInstallDirs)

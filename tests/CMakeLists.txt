@@ -13,6 +13,7 @@ function(add_project_test test target label)
     target_link_libraries(
         ${target}
         PRIVATE
+            project_compile_options
             template_iso_c_core
     )
 
